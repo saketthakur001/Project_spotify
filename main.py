@@ -506,16 +506,12 @@ def get_artist_discography(name):
 def get_friends_activity_json():
     """ get the friends activity using https://github.com/valeriangalliat/spotify-buddylist repository
     the following code runs the node.js get's the friends activity and converts it to json and returns it"""
-    friends_activity = subprocess.check_output(["node", r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"])
-    # decode the bytes to string
-    friends_activity = friends_activity.decode("utf-8")
-    friends_activity = json.loads(friends_activity)
-    # return the json
-    return friends_activity
-# get_friends_activity_json()
-
-# write a funciton to store friends activity to a csv file
-def store_friends_activity():
+    try:
+        friends_activity = subprocess.check_output(["node", r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"])
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        return None
+    # decode the bytes to string 
     while True:
         # check if there is a friends_activity.csv file if not create one
         try:
@@ -535,9 +531,14 @@ def store_friends_activity():
                 writer = csv.writer(file)
                 writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
         staring_time = datetime.datetime.now()
-        
-        # get the friends activity
-        friends_activity_json = get_friends_activity_json()
+
+        # get the friends activity json use a while loop and retry if the request is None
+        while True:
+            friends_activity_json = get_friends_activity_json()
+            if friends_activity_json:
+                time.sleep(60) # pause for 1 minute, this is to prevent the api from getting blocked
+                break
+
         # get the current time
         current_time = datetime.datetime.now()
         # iterate through the friends activity
@@ -546,12 +547,18 @@ def store_friends_activity():
         user_id = ["spotify:user:"+user_id for user_id in user_ids]
         try:
             for friend in friends_activity_json['friends']:
+                
                     # check if the user uri is the same as the user uri
                     if friend['user']['uri'] in user_id:        # only for some selected users
+                        track_id = friend['track']['uri'].split(":")[-1]
                         # check if the track is same as the previous track don't add it to the csv file
+
                         """ This will run if the csv file is empty or if the track is not the same as the previous track"""
                         try:
+                            # this means the person is listening to the same song as the previous song
                             if friend['track']['uri'] == friend_activity_csv['track_uri'].iloc[-1]:
+                                # print the song name
+                                print('listning to the same song',friend['track']['name'])
                                 continue
                         except IndexError:
                             pass
@@ -562,9 +569,7 @@ def store_friends_activity():
                             print('adding to the database', friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time)
                             writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
 
-                        '''Time to add the track to the playlist if it is not already in the playlist '''
-                        playlist_id = "5XV9floz2zzeWiAcduWBkc"
-                        # add the track to the private playlist if it is not already in the playlist
+                        '''add the track to the playlist if it is not already in the playlist '''
                         if friend['track']['uri'].split(":")[-1] not in [i['track']['uri'].split(":")[-1] for i in get_playlist_tracks(playlist_id)]:
                             # add the track to the playlist
                             song_id = friend['track']['uri'].split(":")[-1]
@@ -572,8 +577,12 @@ def store_friends_activity():
                             # print song name
                             print(friend['track']['name'])
                             sp.user_playlist_add_tracks(username, playlist_id, [song_id])
+                        else:
+                            # move the track to the bottom of the playlist
+                            # playlist_modify_private(playlist_id, track_id, len(get_playlist_tracks(playlist_id)))
+                            print(len(get_playlist_tracks(playlist_id)))
+                            sp.user_playlist_add_tracks(username, playlist_id, [track_id], position=len(get_playlist_tracks(playlist_id)) )
 
-                        
                         """trying to play the track"""
                         # sp.start_playback(uris=[friend['track']['uri']])
                         # add the track to queue
@@ -592,9 +601,9 @@ def store_friends_activity():
                 # reset the staring time
                 staring_time = datetime.datetime.now()
             # sleep for 20 seconds
-            print('sleeping for 30 sec')
+            # print('sleeping for 30 sec')
             for i in range(30):
-                print('searching for friends activity in', i, 'sec')
+                print('searching for friends activity in', 30-i, 'sec')
                 time.sleep(1)
             # time.sleep(60)
             # break
@@ -604,4 +613,3 @@ def store_friends_activity():
 
 if __name__ == "__main__":
     store_friends_activity()
-
