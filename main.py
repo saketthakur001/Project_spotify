@@ -604,3 +604,4 @@ def store_friends_activity():
 
 if __name__ == "__main__":
     store_friends_activity()
+
