@@ -413,7 +413,7 @@ def gather_functions(string):
 
 # get all the playlists that are new
 def get_new_playlists():
-    
+
     user_playlist_info = get_user_playlists_info()
     new_df = pd.DataFrame(user_playlist_info)
     new_df['date'] = datetime.datetime.now()
@@ -451,6 +451,35 @@ def get_new_playlists():
     # store_user_playlists_info() # pause while updating the function
     return changed
 
+def get_new_playlists():
+    """Get all the playlists that are new from the user's playlists info.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    new_playlists : pd.DataFrame
+        A data frame with the new playlists info and date.
+    """
+    # Get the user's playlists info as a data frame
+    user_playlist_info = get_user_playlists_info()
+    new_df = pd.DataFrame(user_playlist_info)
+    # Add the current date column
+    new_df['date'] = datetime.datetime.now()
+    # Read the csv file as a data frame
+    old_df = pd.read_csv('user_playlists_info.csv')
+    # Merge the two data frames on playlist id
+    merged_df = pd.merge(new_df, old_df, on='playlist_id', how='outer', indicator=True)
+    # Filter the data frame to keep only the rows that are in the left data frame (new_df)
+    new_playlists = merged_df[merged_df['_merge'] == 'left_only']
+    # Drop the _merge column
+    new_playlists.drop('_merge', axis=1, inplace=True)
+    # Return the new playlists data frame
+    return new_playlists
+
+
 # get all the playlists with functions hidden in the name or description
 def get_playlists_with_functions():
     new_playlists = get_new_playlists()
@@ -478,12 +507,69 @@ def get_playlists_with_functions():
         playlists_with_functions[new_playlists['playlist_id'][i]] = funciton_data
     return playlists_with_functions
 
+def get_playlists_with_functions():
+    """Get new playlists with functions from their names and descriptions.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    playlists_with_functions : dict
+        A dictionary with playlist ids as keys and function data as values.
+    """
+    new_playlists = get_new_playlists()
+    # Create a dictionary to store the playlists id with functions
+    playlists_with_functions = {}
+    # Iterate through the new playlists
+    for i, playlist in enumerate(new_playlists):
+        # Use gather_functions to check if the playlist name and description has functions
+        name = gather_functions(playlist['playlist_name'].lower())
+        description = gather_functions(playlist['playlist_description'].lower())
+        function_data = {}
+        # Iterate through the dictionary and check if the value is not None
+        for key, value in name.items():
+            # If both the name and description have different values for the same key set a list with both values
+            if description.get(key) and description.get(key) != value:
+                function_data[key] = [value, description.get(key)]
+            else:
+                function_data[key] = [value]
+        # Save function_data to the playlists_with_functions dictionary with key as the playlist id
+        playlists_with_functions[playlist['playlist_id']] = function_data
+    return playlists_with_functions
+
 # search for aritst and return the artist id
 def search_for_artist(artist):
     # search for the artist
     results = sp.search(q='artist:' + artist, type='artist')
     artist_id = results['artists']['items'][0]['id']
     return artist_id
+
+def search_for_artist(artist):
+    """Search for an artist on Spotify and return their id.
+
+    Parameters
+    ----------
+    artist : str
+        The name of the artist.
+
+    Returns
+    -------
+    artist_id : str or None
+        The id of the artist, or None if no match is found or multiple matches are found.
+    """
+    # Search for the artist
+    results = sp.search(q=f"artist:{artist}", type='artist')
+    # Check if the search returned exactly one result
+    if len(results['artists']['items']) == 1:
+        # Return the id of the artist
+        artist_id = results['artists']['items'][0]['id']
+        return artist_id
+    else:
+        # Return None and print a message
+        print(f"No match or multiple matches found for {artist}.")
+        return None
 
 # get the all the tracks from the artist
 def get_artist_discography(name):
@@ -503,15 +589,35 @@ def get_artist_discography(name):
             all_tarck_ids.append(track['id'])
     return all_tarck_ids
 
-# def get_friends_activity_json():
-#     """ get the friends activity using https://github.com/valeriangalliat/spotify-buddylist repository
-#     the following code runs the node.js get's the friends activity and converts it to json and returns it"""
-#     try:
-#         friends_activity = subprocess.check_output(["node", r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"])
-#     except subprocess.CalledProcessError as e:
-#         print(e.output)
-#         return None
-#     # decode the bytes to string 
+def get_artist_discography(name):
+    """Get the artist's discography from Spotify and print the track names and ids.
+
+    Parameters
+    ----------
+    name : str
+        The name of the artist.
+
+    Returns
+    -------
+    all_track_ids : list
+        A list of track ids from the artist's albums.
+    """
+    # Get the artist's albums
+    results = sp.artist_albums(search_for_artist(name), album_type='album')
+    # Extract relevant data from the API response
+    all_track_ids = []
+    for album in results['items']:
+
+        # Get the tracks of the album
+        album_tracks = sp.album_tracks(album['id'])
+
+        # Extract relevant data from the API response
+        all_track_ids += [track['id'] for track in album_tracks['items']]
+        for idx, track in enumerate(album_tracks['items']):
+            print(f"Track {idx+1}: {track['name']} by {track.__name__}")
+            print(f"Track ID: {track['id']}")
+    return all_track_ids
+
 
 def get_friends_activity_json():
     """ get the friends activity using https://github.com/valeriangalliat/spotify-buddylist repository
@@ -525,58 +631,122 @@ def get_friends_activity_json():
     friends_activity = friends_activity.decode("utf-8")
     friends_activity = json.loads(friends_activity)
     # return the json
-    print(friends_activity)
+    # print(friends_activity)
     return friends_activity
+
+def get_friends_activity_json():
+    """Get the friends activity from Spotify using a node.js script.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    friends_activity_json : dict or None
+        A dictionary containing the friends activity data, or None if an error occurs.
+    """
+    # Path to the node.js script
+    path_to_script = r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"
+    # path_to_script = os.path.join("C:", "Users", "saket", "Documents", "GitHub", "Pyhton", "Project Music", "spotify api", "spotify-buddylist-master", "example.js")
+
+    try:
+        # Run the node.js script and get the output as bytes
+        friends_activity_bytes = subprocess.check_output(["node", path_to_script])
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        return e.output
+    # Decode the bytes to string
+    friends_activity_str = friends_activity_bytes.decode("utf-8")
+    # Convert the string to json object
+    friends_activity_json = json.loads(friends_activity_str)
+    # Return the json object
+    return friends_activity_json
 # get_friends_activity_json()
 
-# write a funciton to store friends activity to a csv file
+# # write a funciton to store friends activity to a csv file
+# def store_friends_activity():
+#     # this is where all the tracks from the selected user will be stored
+#     playlist_id = "5XV9floz2zzeWiAcduWBkc"
+#     while True:
+#         """
+#         checking if the files where I store tracks exists, else create them
+#         """
+        
+#         try:# check if there is a friends_activity.csv file if not create one
+#             # read the csv file
+#             friend_activity_csv = pd.read_csv('friend_activity.csv')
+#         except FileNotFoundError:
+#             # create a csv file
+#             with open('friend_activity.csv', 'w', newline='') as file:
+#                 writer = csv.writer(file)
+#                 writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
+#         try:
+#             # read the csv file
+#             friends_activity_csv = pd.read_csv('friends_activity.csv')
+#         except FileNotFoundError:
+#             # create a csv file
+#             with open('friends_activity.csv', 'w', newline='') as file:
+#                 writer = csv.writer(file)
+#                 writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
+#         """        ####      Creating the file part ends here        ####"""
+
+
 def store_friends_activity():
+    """Store all the tracks from the selected user's playlist in csv files."""
     playlist_id = "5XV9floz2zzeWiAcduWBkc"
     while True:
-        # check if there is a friends_activity.csv file if not create one
-        try:
-            # read the csv file
-            friend_activity_csv = pd.read_csv('friend_activity.csv')
-        except FileNotFoundError:
-            # create a csv file
-            with open('friend_activity.csv', 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
-        try:
-            # read the csv file
-            friends_activity_csv = pd.read_csv('friends_activity.csv')
-        except FileNotFoundError:
-            # create a csv file
-            with open('friends_activity.csv', 'w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
-        staring_time = datetime.datetime.now()
+        # Check if the files where I store tracks exist, else create them
+        # Check if there is a friend_activity.csv file, if not create one
+        if not os.path.exists('friend_activity.csv'):
+            # Create a data frame with column names
+            friend_activity_df = pd.DataFrame(columns=['user_uri', 'track_uri', 'timestamp', 'current_time'])
+            # Write the data frame to a csv file
+            friend_activity_df.to_csv('friend_activity.csv', index=False)
+        # Read the csv file as a data frame
+        friend_activity_df = pd.read_csv('friend_activity.csv')
+        # Check if there is a friends_activity.csv file, if not create one
+        if not os.path.exists('friends_activity.csv'):
+            # Create a data frame with column names
+            friends_activity_df = pd.DataFrame(columns=['user_uri', 'track_uri', 'timestamp', 'current_time'])
+            # Write the data frame to a csv file
+            friends_activity_df.to_csv('friends_activity.csv', index=False)
+        # Read the csv file as a data frame
+        friends_activity_df = pd.read_csv('friends_activity.csv')
+        # Creating the file part ends here
 
-        # get the friends activity json use a while loop and retry if the request is None
+        # trying to get the friends activity, Will try again and again until the response is not None 
         while True:
             friends_activity_json = get_friends_activity_json()
             if friends_activity_json != None:
                 break
             else: time.sleep(60)
 
-        # get the current time
+        # get the current time, will help to know when the user was listening to the song
+        staring_time = datetime.datetime.now()
+        
+        # yeah I can use the only one but not sure if it well break the code so I am just gonna leave it
         current_time = datetime.datetime.now()
-        # iterate through the friends activity
-
+        
         user_ids = ["gntab9tp1cc5qipthodlvvsm3"]
         user_id = ["spotify:user:" + user_id for user_id in user_ids]
+        # try and except if there's a key error
         try:
             # times got the same song in a row
             same_song = 0
+            # iterate through the friends activity
             for friend in friends_activity_json['friends']:    
                     # check if the user uri is the same as the user uri
                     if friend['user']['uri'] in user_id:        # only for some selected users
+                        print('user uri', friend['user']['name'])
+                        # the id of the particular track the particular user is listening to
                         track_id = friend['track']['uri'].split(":")[-1]
                         # check if the track is same as the previous track don't add it to the csv file
 
                         """ This will run if the csv file is empty or if the track is not the same as the previous track"""
                         try:
-                            'same song'
+                            """            continue trying if listening to the same song                             
+                            """
                             # this means the person is listening to the same song as the previous song
                             if friend['track']['uri'] == friend_activity_csv['track_uri'].iloc[-1]:
                                 # print the song name
@@ -585,24 +755,27 @@ def store_friends_activity():
                                 continue
                         except IndexError:
                             pass
-
                         # write the data to the csv file
                         with open('friend_activity.csv', 'a', newline='') as file:
                             writer = csv.writer(file)
                             print('adding to the database', friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time)
-                            # writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
+                            writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
                             same_song = 0
 
                         # get all the playlist tracks from the playlist
                         the_playlist_tracks = get_playlist_tracks(playlist_id)
                         song_id = friend['track']['uri'].split(":")[-1]
                         '''add the track to the playlist if it is not already in the playlist '''
+                        print(song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks])
+                        print(song_id,  the_playlist_tracks)
+                        # if the track is not in the playlist add it to the playlist
                         if song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks]:
                             # add the track to the playlist
                             print(song_id)
                             # print song name
                             print(friend['track']['name'])
                             sp.user_playlist_add_tracks(username, playlist_id, [song_id])
+                        # if the track is already in the playlist move it to the bottom of the playlist, means the track has been played
                         else:
                             # move the track to the bottom of the playlist
                             # playlist_modify_private(playlist_id, track_id, len(get_playlist_tracks(playlist_id)))
@@ -615,6 +788,7 @@ def store_friends_activity():
                         # sp.start_playback(uris=[friend['track']['uri']])
                         # add the track to queue
                         # sp.add_to_queue(friend['track']['uri'])
+                    else: print('the data request didn\'t had the user', friend['user']['name'])
             
             # run this code every 30 minutes using start_time and reset the start_time
             if (datetime.datetime.now() - staring_time).seconds > 1800:
@@ -641,6 +815,122 @@ def store_friends_activity():
         except KeyError:
             print('KeyError')
             time.sleep(30)
+
+
+# def store_friends_activity():
+#     """Store all the tracks from the selected user's playlist in csv files."""
+#     playlist_id = "5XV9floz2zzeWiAcduWBkc"
+#     while True:
+#         # Check if the files where I store tracks exist, else create them
+#         # Check if there is a friend_activity.csv file, if not create one
+#         if not os.path.exists('friend_activity.csv'):
+#             # Create a data frame with column names
+#             friend_activity_df = pd.DataFrame(columns=['user_uri', 'track_uri', 'timestamp', 'current_time'])
+#             # Write the data frame to a csv file
+#             friend_activity_df.to_csv('friend_activity.csv', index=False)
+#         # Read the csv file as a data frame
+#         friend_activity_df = pd.read_csv('friend_activity.csv')
+#         # Check if there is a friends_activity.csv file, if not create one
+#         if not os.path.exists('friends_activity.csv'):
+#             # Create a data frame with column names
+#             friends_activity_df = pd.DataFrame(columns=['user_uri', 'track_uri', 'timestamp', 'current_time'])
+#             # Write the data frame to a csv file
+#             friends_activity_df.to_csv('friends_activity.csv', index=False)
+#         # Read the csv file as a data frame
+#         friends_activity_df = pd.read_csv('friends_activity.csv')
+#         # Creating the file part ends here
+
+#         # trying to get the friends activity, Will try again and again until the response is not None 
+#         while True:
+#             friends_activity_json = get_friends_activity_json()
+#             if friends_activity_json != None:
+#                 break
+#             else: time.sleep(60)
+        
+#         # get the current time, will help to know when the user was listening to the song
+#         current_time = datetime.datetime.now()
+        
+#         user_ids = ["gntab9tp1cc5qipthodlvvsm3"]
+#         user_id = [f"spotify:user:{user_id}" for user_id in user_ids]
+#             try:
+#             # times got the same song in a row
+#             same_song = 0
+#             # iterate through the friends activity
+#         for friend in friends_activity_json['friends']:    
+#                 # check if the user uri is the same as the user uri
+#                 if friend['user']['uri'] in user_id:        # only for some selected users
+#                     print('user uri', friend['user']['name'])
+#                     # the id of the particular track the particular user is listening to
+#                     track_id = friend['track']['id']
+#                     # check if the track is same as the previous track don't add it to the csv file
+
+#                     """ This will run if the csv file is empty or if the track is not the same as the previous track"""
+#                     if friend['track']['uri'] == friend_activity_csv['track_uri'].iloc[-1]:
+#                         # print the song name
+#                         print('listning to the same song',friend['track']['name'])
+#                         same_song += 1
+#                         continue
+#                     elif len(friend_activity_csv) == 0 or friend['track']['uri'] != friend_activity_csv['track_uri'].iloc[-1]:
+#                         # write the data to the csv file
+#                         with open('friend_activity.csv', 'a', newline='') as file:
+#                             writer = csv.writer(file)
+#                             print('adding to the database', friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time)
+#                             writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
+#                             same_song = 0
+
+#                         # get all the playlist tracks from the playlist
+#                         the_playlist_tracks = get_playlist_tracks(playlist_id)
+#                         song_id = friend['track']['uri'].split(":")[-1]
+#                         '''add the track to the playlist if it is not already in the playlist '''
+#                         print(song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks])
+#                         print(song_id,  the_playlist_tracks)
+#                         # if the track is not in the playlist add it to the playlist
+#                         if song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks]:
+#                             # add the track to the playlist
+#                             print(song_id)
+#                             # print song name
+#                             print(friend['track']['name'])
+#                             sp.user_playlist_add_tracks(username, playlist_id, [song_id])
+#                         # if the track is already in the playlist move it to the bottom of the playlist, means the track has been played
+#                         else:
+#                             # move the track to the bottom of the playlist
+#                             # playlist_modify_private(playlist_id, track_id, len(get_playlist_tracks(playlist_id)))
+#                             # sp.user_playlist_add_tracks(username, playlist_id, [track_id], position=len(the_playlist_tracks))
+#                             # move the track to the bottom of the playlist
+#                             playlist_modify_private.user_playlist_reorder_tracks(username, playlist_id, len(get_playlist_tracks(playlist_id)), 0, [track_id])
+
+
+#                         """trying to play the track"""
+#                         # sp.start_playback(uris=[friend['track']['uri']])
+#                         # add the track to queue
+#                         # sp.add_to_queue(friend['track']['uri'])
+#                     else: print('the data request didn\'t had the user', friend['user']['name'])
+            
+#             # run this code every 30 minutes using start_time and reset the start_time
+#             if (datetime.datetime.now() - staring_time).seconds > 1800:
+#                 print('30 hour is over and updating the friends_activity.csv file')
+#                 """ I wan't able to update only if new data is added to the csv file so I am just updating the csv file every 30 minutes"""
+                
+#                 # write the data to the csv file
+#                 for friend in friends_activity_json['friends']:
+#                     with open('friends_activity.csv', 'a', newline='') as file:
+#                         writer = csv.writer(file)
+#                         writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
+#                 # reset the staring time
+#                 staring_time = datetime.datetime.now()
+#             # sleep for 20 seconds
+#             # print('sleeping for 30 sec')
+#             sec = 30
+#             if same_song > 10: sec = 3*60
+#             elif same_song > 30*2: sec = 5*60
+#             for i in range(sec):
+#                 print('searching for friends activity in', 30-i, 'sec')
+#                 time.sleep(1)
+#             # time.sleep(60)
+#             # break
+#         except KeyError:
+#             print('KeyError')
+#             time.sleep(30)
 
 if __name__ == "__main__":
     store_friends_activity()
