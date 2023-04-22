@@ -564,7 +564,7 @@ def store_friends_activity():
         # iterate through the friends activity
 
         user_ids = ["gntab9tp1cc5qipthodlvvsm3"]
-        user_id = ["spotify:user:"+user_id for user_id in user_ids]
+        user_id = ["spotify:user:" + user_id for user_id in user_ids]
         try:
             # times got the same song in a row
             same_song = 0
@@ -590,13 +590,15 @@ def store_friends_activity():
                         with open('friend_activity.csv', 'a', newline='') as file:
                             writer = csv.writer(file)
                             print('adding to the database', friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time)
-                            writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
+                            # writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
                             same_song = 0
 
+                        # get all the playlist tracks from the playlist
+                        the_playlist_tracks = get_playlist_tracks(playlist_id)
+                        song_id = friend['track']['uri'].split(":")[-1]
                         '''add the track to the playlist if it is not already in the playlist '''
-                        if friend['track']['uri'].split(":")[-1] not in [i['track']['uri'].split(":")[-1] for i in get_playlist_tracks(playlist_id)]:
+                        if song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks]:
                             # add the track to the playlist
-                            song_id = friend['track']['uri'].split(":")[-1]
                             print(song_id)
                             # print song name
                             print(friend['track']['name'])
@@ -604,8 +606,10 @@ def store_friends_activity():
                         else:
                             # move the track to the bottom of the playlist
                             # playlist_modify_private(playlist_id, track_id, len(get_playlist_tracks(playlist_id)))
-                            print(len(get_playlist_tracks(playlist_id)))
-                            sp.user_playlist_add_tracks(username, playlist_id, [track_id], position=len(get_playlist_tracks(playlist_id)) )
+                            # sp.user_playlist_add_tracks(username, playlist_id, [track_id], position=len(the_playlist_tracks))
+                            # move the track to the bottom of the playlist
+                            playlist_modify_private.user_playlist_reorder_tracks(username, playlist_id, len(get_playlist_tracks(playlist_id)), 0, [track_id])
+
 
                         """trying to play the track"""
                         # sp.start_playback(uris=[friend['track']['uri']])
