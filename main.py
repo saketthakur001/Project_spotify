@@ -28,13 +28,13 @@ client_credentials_manager = spotipy.oauth2.SpotifyOAuth(
         # open_browser=False
         )
 
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager, requests_timeout=10, retries=10)
+    
 
 # returns a spotipy object with the given scope
 def get_spotify_token(scope):
     client_credentials_manager.get_access_token(as_dict=False)
-    return spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+    return spotipy.Spotify(client_credentials_manager=client_credentials_manager, requests_timeout=10, retries=10)
 
 # token to modify user's playlists
 playlist_modify_public = get_spotify_token("playlist-modify-public")
@@ -869,5 +869,4 @@ def store_friends_activity():
 
 
 if __name__ == "__main__":
-    # store_friends_activity()
-    pass
+    store_friends_activity()
