@@ -1,3 +1,7 @@
+""" Tracks your friends's music streaming activity on Spotify and adds the tracks to a playlist.
+
+"""
+
 import sqlite3
 import json
 import re
@@ -9,12 +13,14 @@ import datetime
 import subprocess
 import csv
 import time
+import clint_id_secret
 
 # set the client_ID, client_SECRET, redirect_uri and username for the spotify api authentication
-client_ID = '4e1c1626b9e04c0fba6d8f14d31ab3e6'
-client_SECRET = '607dd5362f9d4f44b33361eca5aa81b8'   
+
 redirect_uri = 'http://127.0.0.1:9090'
 username = 'rt47etgc6xpwhhhb8575rth83'
+client_ID = clint_id_secret.client_ID
+client_SECRET = clint_id_secret.client_SECRET
 
 # data_folder = r"C:\Users\saket\Documents\1.MY_DATA\spotify\spotify api data"
 recently_played_file_name = 'recently_played_tracks.csv'
@@ -28,13 +34,13 @@ client_credentials_manager = spotipy.oauth2.SpotifyOAuth(
         # open_browser=False
         )
 
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
-
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager, requests_timeout=10, retries=10)
+    
 
 # returns a spotipy object with the given scope
 def get_spotify_token(scope):
     client_credentials_manager.get_access_token(as_dict=False)
-    return spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+    return spotipy.Spotify(client_credentials_manager=client_credentials_manager, requests_timeout=10, retries=10)
 
 # token to modify user's playlists
 playlist_modify_public = get_spotify_token("playlist-modify-public")
@@ -75,6 +81,7 @@ def get_playlist_tracks(playlist_id):
         tracks.extend(results['items'])
     return tracks
 
+# retry 3 times to get the playlist tracks
 def get_playlist_tracks_retry(playlist_id):
     """retry 3 times to get the playlist tracks
 
@@ -722,6 +729,8 @@ def create_file(file_name):
         with open(file_name, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
+        # read the csv file
+        friends_activity = pd.read_csv(file_name)
     return friends_activity
 
 # # write a funciton to store friends activity to a csv file
@@ -738,7 +747,7 @@ def store_friends_activity():
         friend_activity_csv = create_file('friend_activity.csv')
         friends_activity_csv = create_file('friends_activity.csv')
 
-        # try:# check if there is a friends_activity.csv file if not create one
+# try:# check if there is a friends_activity.csv file if not create one
         #     # read the csv file
         #     friend_activity_csv = pd.read_csv('friend_activity.csv')
         # except FileNotFoundError:
@@ -755,9 +764,8 @@ def store_friends_activity():
         #         writer = csv.writer(file)
         #         writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
         # """        ####      Creating the file part ends here        ####"""
-        
 
-        # this loop will keep running until the we get the json response, if we get None as response then it will keep running
+# this loop will keep running until the we get the json response, if we get None as response then it will keep running
         while True:
             friends_activity_json = get_friends_activity_json()
             if friends_activity_json != None:
@@ -866,6 +874,8 @@ def store_friends_activity():
         except KeyError:
             print('KeyError')
             time.sleep(30)
+
+
 
 if __name__ == "__main__":
     store_friends_activity()
