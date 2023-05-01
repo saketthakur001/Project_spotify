@@ -747,24 +747,6 @@ def store_friends_activity():
         friend_activity_csv = create_file('friend_activity.csv')
         friends_activity_csv = create_file('friends_activity.csv')
 
-# try:# check if there is a friends_activity.csv file if not create one
-        #     # read the csv file
-        #     friend_activity_csv = pd.read_csv('friend_activity.csv')
-        # except FileNotFoundError:
-        #     # create a csv file
-        #     with open('friend_activity.csv', 'w', newline='') as file:
-        #         writer = csv.writer(file)
-        #         writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
-        # try:
-        #     # read the csv file
-        #     friends_activity_csv = pd.read_csv('friends_activity.csv')
-        # except FileNotFoundError:
-        #     # create a csv file
-        #     with open('friends_activity.csv', 'w', newline='') as file:
-        #         writer = csv.writer(file)
-        #         writer.writerow(['user_uri', 'track_uri', 'timestamp', 'current_time'])
-        # """        ####      Creating the file part ends here        ####"""
-
 # this loop will keep running until the we get the json response, if we get None as response then it will keep running
         while True:
             friends_activity_json = get_friends_activity_json()
