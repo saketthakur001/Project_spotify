@@ -99,13 +99,16 @@ def get_playlist_tracks_retry(playlist_id):
             return results
         except Exception as e:
             print(f"Error fetching playlist tracks: {e}")
-            print(f"Retrying in 10 seconds ({i+1}/3 attempts)...")
+            print(f"Retrying in 10 seconds ({i+1}/20 attempts)...")
             if i < 3:
                 time.sleep(10)
+                print('sleeping for 10 seconds')
             elif i < 5:
                 time.sleep(30)
+                print('sleeping for 30 seconds')
             else:
                 time.sleep(60)
+                print('sleeping for 60 seconds')
     return None
 
 
@@ -732,6 +735,32 @@ def create_file(file_name):
         # read the csv file
         friends_activity = pd.read_csv(file_name)
     return friends_activity
+
+# push the data files to github regularly
+def push_to_github(files):
+    """
+    Description
+    -----------
+    Push the files to github.
+
+    Parameters
+    ----------
+    files : list
+        A list of files to push to github.
+
+    Returns
+    -------
+    None
+    """
+    # list of files to push
+    # commit message
+    commit_message = "files updated"
+    # push the files to github
+    for file in files:
+        subprocess.check_output(["git", "add", file])
+    subprocess.check_output(["git", "commit", "-m", commit_message])
+    subprocess.check_output(["git", "push"])
+
 
 # # write a funciton to store friends activity to a csv file
 def store_friends_activity():
