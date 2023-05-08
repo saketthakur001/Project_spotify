@@ -42,6 +42,8 @@ def get_spotify_token(scope):
     client_credentials_manager.get_access_token(as_dict=False)
     return spotipy.Spotify(client_credentials_manager=client_credentials_manager, requests_timeout=10, retries=10)
 
+
+""" ATTENTION you can find a better way, so that you don't have to get the every token everytime"""
 # token to modify user's playlists
 playlist_modify_public = get_spotify_token("playlist-modify-public")
 
@@ -81,6 +83,7 @@ def get_playlist_tracks(playlist_id):
         tracks.extend(results['items'])
     return tracks
 
+""" ATTENTION needed here Need to be updated """
 # retry 3 times to get the playlist tracks
 def get_playlist_tracks_retry(playlist_id):
     """retry 3 times to get the playlist tracks
@@ -112,19 +115,51 @@ def get_playlist_tracks_retry(playlist_id):
     return None
 
 
-# returns the recently played tracks
 def get_recently_played_tracks(limit=50):
+    """ Get the recently played tracks from the user's account.
+
+    parameters
+    ----------
+    limit : int (default=50)
+        The number of tracks to return. Default: 50. Minimum: 1. Maximum: 50.
+    
+    Returns
+    -------
+    recently_played : dict
+    """
     recently_played = user_read_recently_played.current_user_recently_played(limit=limit)
     return recently_played
 
-# returns the top 50 artists played by the user
 def add_to_playlist(playlist_id, list_of_tracks):
+    """ Add the tracks to the playlist.
+
+    Parameters
+    ----------
+    playlist_id : str
+        The playlist id.
+
+    list_of_tracks : list
+        The list of tracks to add to the playlist.
+    """
     splity_split = split_with_no(list_of_tracks, 100)
     for hundred_lis in splity_split:
         playlist_modify_private.user_playlist_add_tracks(user=username, playlist_id=playlist_id, tracks=hundred_lis)
 
-# splits the list into sublists of size 100
+
 def split_with_no(list, No):
+    """splits the list into sublists of size 100
+
+    Parameters
+    ----------
+    list : list
+        The list to split.
+    No : int
+        The size of the sublists.
+
+    Returns
+    -------
+    lists : list
+    """
     if type(list) == str:
         return [list]
     lists = []
@@ -144,11 +179,33 @@ def split_with_no(list, No):
 
 # returns the top 50 tracks played by the user
 def get_top_tracks(limit=50):
+    """ Get the top tracks from the user's account.
+
+    Parameters
+    ----------
+    limit : int (default=50)
+        The number of tracks to return. Default: 50. Minimum: 1. Maximum: 50.
+
+    Returns
+    -------
+    top_tracks : dict
+    """
     top_tracks = token.current_user_top_tracks(limit=limit)
     return top_tracks
 
+""" ATTENTION needed here Need to be updated """
 # returns a datetime object from the given timestamp
 def timestamp_to_time(timestamp):
+    """returns a datetime object from the given timestamp
+
+    Parameters
+    ----------
+    timestamp : str
+
+    Returns
+    -------
+    dt_object : datetime.datetime
+    """
     try:
         # Try to parse the timestamp string as ISO format with microsecond component
         dt_object = datetime.datetime.fromisoformat(timestamp[:-1])
@@ -164,6 +221,16 @@ def timestamp_to_time(timestamp):
 
 # returns a dictionary with the track info for the given track
 def get_track_info_from_json(track_dict):
+    """returns a dictionary with the track info for the given track
+
+    Parameters
+    ----------
+    track_dict : dict
+
+    Returns
+    -------
+    track_info : dict
+    """
     # iterate through all the keys in the track_json try to get the value of the key, else set the value to None
     track_info = {}
     for key in track_dict.keys():
@@ -173,8 +240,14 @@ def get_track_info_from_json(track_dict):
             track_info[key] = None
     return track_info
 
-# returns a list of dictionaries with the track info for each track
 def get_recently_played_tracks_info():
+    """ Get the recently played tracks info from the user.
+
+    Returns
+    -------
+    recently_played_tracks : list
+        A list of dictionaries with the recently played tracks info.
+    """
     # list to store the recently played tracks
     recently_played_tracks = []
     # get the recently played tracks
@@ -208,8 +281,11 @@ def get_recently_played_tracks_info():
         recently_played_tracks.append(track_info)
     return recently_played_tracks
 
+""" ATTENTION needed here Need to be updated """
 # stores the recently played tracks in a csv file
 def store_recently_played_tracks():
+    """stores the recently played tracks in a csv file
+    """
     # get the recently played tracks
     recently_played_tracks = get_recently_played_tracks_info()
     # create a dataframe from the stored recently played tracks
@@ -241,8 +317,18 @@ def store_recently_played_tracks():
             old_recently_played_tracks.to_csv(recently_played_file_name, index=False)
             break
 
-# function to get the spotify token for the given scope
 def get_top_tracks(limit=200):
+    """returns the top tracks
+
+    Parameters
+    ----------
+    limit : int, optional
+        The number of entities to return. Default is 200. Minimum is 1. Maximum is 200(I guess # need to make sure)
+    
+    Returns
+    -------
+    top_tracks : dict
+    """
     top_tracks = user_top_read.current_user_top_tracks(limit=limit, time_range='short_term')
     return top_tracks
 
@@ -270,8 +356,18 @@ def get_top_tracks_info():
         top_tracks_info.append(track_info)
     return top_tracks_info
 
-# returns the user's top artists in a list
 def get_top_artists_info(limit=200):
+    """returns the top artists info in a list
+
+    Parameters
+    ----------
+    limit : int, optional
+        The number of entities to return.
+
+    Returns
+    -------
+    top_artists_info : list
+    """
     top_artists = user_top_read.current_user_top_artists(limit=limit)
     top_artists_info = []
     for i in range(len(top_artists['items'])):
@@ -288,6 +384,17 @@ def get_top_artists_info(limit=200):
 
 # returns the user's top genres in a list
 def get_top_genres_info(limit=200):
+    """returns the user's top genres in a list
+
+    Parameters
+    ----------
+    limit : int, optional
+        The number of entities to return.
+
+    Returns
+    -------
+    top_genres_info : list
+    """
     top_artists = user_top_read.current_user_top_artists(limit=limit)
     top_genres_info = []
     for i in range(len(top_artists['items'])):
@@ -302,6 +409,17 @@ def get_top_genres_info(limit=200):
 
 # returns the user's library tracks in a list
 def get_library_info(limit=200):
+    """returns the user's library tracks in a list
+
+    Parameters
+    ----------
+    limit : int, optional
+        The number of entities to return.
+
+    Returns
+    -------
+    library_info : list
+    """
     # get the token for the user-library-read scope
     # get the user's library data
     library = user_library_read.current_user_saved_tracks(limit=limit)
@@ -312,27 +430,64 @@ def get_library_info(limit=200):
 
 # returns a list of dictionaries containing the user's playlists
 def get_user_playlists():
+    """ returns a list of dictionaries containing the user's playlists
+
+    Returns
+    -------
+    user_playlists : list
+        list of dictionaries containing the user's playlists
+    """
     user_playlists = playlist_read_private.current_user_playlists(limit=50)
     return user_playlists
 
-# returns a list of dictionaries containing the user's playlists
-def store_user_playlists_info():
-    user_playlists_info = get_user_playlists_info()
-    user_playlists_info_df = pd.DataFrame(user_playlists_info)
-    user_playlists_info_df.to_csv('user_playlists_info.csv', index=False)
+# # returns a list of dictionaries containing the user's playlists
+# def store_user_playlists_info():
+#     user_playlists_info = get_user_playlists_info()
+#     user_playlists_info_df = pd.DataFrame(user_playlists_info)
+#     user_playlists_info_df.to_csv('user_playlists_info.csv', index=False)
 
 # returns the tracks in a playlist in a dictionary
 def get_user_playlist_tracks(playlist_id):
+    """ returns the tracks in a playlist in a dictionary
+
+    Parameters
+    ----------
+    playlist_id : str
+        The Spotify ID for the playlist.
+
+    Returns
+    -------
+    user_playlist_tracks : dict
+        The tracks in a playlist in a dictionary
+    """
     user_playlist_tracks = playlist_read_private.user_playlist_tracks(playlist_id)
     return user_playlist_tracks
 
+""" ATTENTION: This function is not working properly."""
 def sort_playlist_by_popularity():
-    """ Sorts the playlist by popularity """
-    
+    """ Sorts the playlist by popularity
+
+    Returns
+    -------
+    sorted_playlist : list
+        The tracks in a playlist sorted by popularity
+    """
     user_playlist_tracks = get_user_playlist_tracks(playlist_id)
 
 # returns the tracks in a playlist in a list of dictionaries
 def get_user_playlist_tracks_info(playlist_id):
+    """ returns the tracks in a playlist in a list of dictionaries
+
+    Parameters
+    ----------
+    playlist_id : str
+        The Spotify ID for the playlist.
+
+    Returns
+    -------
+    user_playlist_tracks_info : list
+        The tracks in a playlist in a list of dictionaries
+    """
     user_playlist_tracks = get_user_playlist_tracks(playlist_id)
     user_playlist_tracks_info = []
     for i in range(len(user_playlist_tracks['items'])):
@@ -412,6 +567,15 @@ def get_nested_value(dictionary, keys, default=''):
 
 # returns a list of dictionaries containing the user's playlists information
 def get_user_playlists_info():
+    """ Returns a list of dictionaries containing the user's playlists information
+    Parameters:
+    ----------
+    None
+
+    Returns:
+    -------
+    user_playlists_info: list of dictionaries 
+    """
     user_playlists = get_user_playlists()
     user_playlists_info = []
     for i in range(len(user_playlists['items'])):
@@ -435,8 +599,12 @@ def get_user_playlists_info():
         user_playlists_info.append(playlist_info)
     return user_playlists_info
 
+
+""" ATTENTION NEEDED HERE"""
 # store the user's playlists information in a csv file
-def store_user_playlists_info():    
+def store_user_playlists_info():
+    """change to to store into to a sql database
+    """
     user_playlists_info = get_user_playlists_info()
     df = pd.DataFrame(user_playlists_info)
     # add a column with the current date and time
@@ -466,45 +634,45 @@ def gather_functions(string):
         dic["artist"] = artist.group(1).replace("_", " ")
     return dic
 
-# get all the playlists that are new
-def get_new_playlists():
+# # get all the playlists that are new
+# def get_new_playlists():
 
-    user_playlist_info = get_user_playlists_info()
-    new_df = pd.DataFrame(user_playlist_info)
-    new_df['date'] = datetime.datetime.now()
-    # read the csv file
-    old_df = pd.read_csv('user_playlists_info.csv')
+#     user_playlist_info = get_user_playlists_info()
+#     new_df = pd.DataFrame(user_playlist_info)
+#     new_df['date'] = datetime.datetime.now()
+#     # read the csv file
+#     old_df = pd.read_csv('user_playlists_info.csv')
 
-    """Iterate though the new_df and search for matching value from the old dataframe save the index where the first value matches. the value should continue to match."""
-    # iterate through the new_df
-    user_playlist_info = get_user_playlists_info()
-    new_df = pd.DataFrame(user_playlist_info)
-    new_df['date'] = datetime.datetime.now()
-    # read the csv file
-    old_df = pd.read_csv('user_playlists_info.csv')
-    the_index = 0
-    previous_index = -1
-    for i in range(len(new_df)):
-        song_id = new_df['playlist_id'][i]
-        try:
-            # get the index of the matching value
-            index = old_df[old_df['playlist_id'] == song_id].index[0]
-            # if the index is not the previous index + 1 and it is not the first index
-            if i != previous_index+1 and i != 0:
-                # save the index
-                the_index = i
-            previous_index = i
-        except IndexError:
-            pass
-    changed = new_df[:the_index]
+#     """Iterate though the new_df and search for matching value from the old dataframe save the index where the first value matches. the value should continue to match."""
+#     # iterate through the new_df
+#     user_playlist_info = get_user_playlists_info()
+#     new_df = pd.DataFrame(user_playlist_info)
+#     new_df['date'] = datetime.datetime.now()
+#     # read the csv file
+#     old_df = pd.read_csv('user_playlists_info.csv')
+#     the_index = 0
+#     previous_index = -1
+#     for i in range(len(new_df)):
+#         song_id = new_df['playlist_id'][i]
+#         try:
+#             # get the index of the matching value
+#             index = old_df[old_df['playlist_id'] == song_id].index[0]
+#             # if the index is not the previous index + 1 and it is not the first index
+#             if i != previous_index+1 and i != 0:
+#                 # save the index
+#                 the_index = i
+#             previous_index = i
+#         except IndexError:
+#             pass
+#     changed = new_df[:the_index]
 
-    # replace the rows before the index with the new rows, changed
-    old_df[:the_index] = changed
-    # save the new dataframe to the csv file
-    # old_df.to_csv('user_playlists_info.csv', index=False)
-    # return all the playlits that are new
-    # store_user_playlists_info() # pause while updating the function
-    return changed
+#     # replace the rows before the index with the new rows, changed
+#     old_df[:the_index] = changed
+#     # save the new dataframe to the csv file
+#     # old_df.to_csv('user_playlists_info.csv', index=False)
+#     # return all the playlits that are new
+#     # store_user_playlists_info() # pause while updating the function
+#     return changed
 
 def get_new_playlists():
     """Get all the playlists that are new from the user's playlists info.
@@ -535,32 +703,32 @@ def get_new_playlists():
     return new_playlists
 
 
-# get all the playlists with functions hidden in the name or description
-def get_playlists_with_functions():
-    new_playlists = get_new_playlists()
-    # create a dictonary to store the playlists id with functions
-    playlists_with_functions = {}
-    # iterate through the new playlists
-    for i in range(len(new_playlists)):
-        # use gather_functions to check if the playlist name and description has functions
-        name = gather_functions(new_playlists['playlist_name'][i].lower())
-        description = gather_functions(new_playlists['playlist_description'][i].lower())
-        funciton_data = {}
-        # print(name)
-        # print(description)
-        # iterate through the dictonary and check if the value is not None
-        for key, value in name.items():
-            if value:
-                # if both the name and description have different values for the same key set a list with both values
-                if description[key] and description[key] != value:
-                    funciton_data[key] = [value, description[key]]
-                else:
-                    funciton_data[key] = [value]
-            # add playlist id to the dictonary
-            # funciton_data['playlist_id'] = new_playlists['playlist_id'][i]
-        # save funciton_data to the playlists_with_functions dictonary with key as the playlist id
-        playlists_with_functions[new_playlists['playlist_id'][i]] = funciton_data
-    return playlists_with_functions
+# # get all the playlists with functions hidden in the name or description
+# def get_playlists_with_functions():
+#     new_playlists = get_new_playlists()
+#     # create a dictonary to store the playlists id with functions
+#     playlists_with_functions = {}
+#     # iterate through the new playlists
+#     for i in range(len(new_playlists)):
+#         # use gather_functions to check if the playlist name and description has functions
+#         name = gather_functions(new_playlists['playlist_name'][i].lower())
+#         description = gather_functions(new_playlists['playlist_description'][i].lower())
+#         funciton_data = {}
+#         # print(name)
+#         # print(description)
+#         # iterate through the dictonary and check if the value is not None
+#         for key, value in name.items():
+#             if value:
+#                 # if both the name and description have different values for the same key set a list with both values
+#                 if description[key] and description[key] != value:
+#                     funciton_data[key] = [value, description[key]]
+#                 else:
+#                     funciton_data[key] = [value]
+#             # add playlist id to the dictonary
+#             # funciton_data['playlist_id'] = new_playlists['playlist_id'][i]
+#         # save funciton_data to the playlists_with_functions dictonary with key as the playlist id
+#         playlists_with_functions[new_playlists['playlist_id'][i]] = funciton_data
+#     return playlists_with_functions
 
 def get_playlists_with_functions():
     """Get new playlists with functions from their names and descriptions.
@@ -594,12 +762,12 @@ def get_playlists_with_functions():
         playlists_with_functions[playlist['playlist_id']] = function_data
     return playlists_with_functions
 
-# search for aritst and return the artist id
-def search_for_artist(artist):
-    # search for the artist
-    results = sp.search(q='artist:' + artist, type='artist')
-    artist_id = results['artists']['items'][0]['id']
-    return artist_id
+# # search for aritst and return the artist id
+# def search_for_artist(artist):
+#     # search for the artist
+#     results = sp.search(q='artist:' + artist, type='artist')
+#     artist_id = results['artists']['items'][0]['id']
+#     return artist_id
 
 def search_for_artist(artist):
     """Search for an artist on Spotify and return their id.
@@ -627,22 +795,22 @@ def search_for_artist(artist):
         return None
 
 # get the all the tracks from the artist
-def get_artist_discography(name):
-    # Get the artist's albums
-    results = sp.artist_albums(search_for_artist(name), album_type='album')
-    # Extract relevant data from the API response
-    all_tarck_ids = []
-    for album in results['items']:
+# def get_artist_discography(name):
+#     # Get the artist's albums
+#     results = sp.artist_albums(search_for_artist(name), album_type='album')
+#     # Extract relevant data from the API response
+#     all_tarck_ids = []
+#     for album in results['items']:
 
-        # Get the tracks of the album
-        album_tracks = sp.album_tracks(album['id'])
+#         # Get the tracks of the album
+#         album_tracks = sp.album_tracks(album['id'])
 
-        # Extract relevant data from the API response
-        for idx, track in enumerate(album_tracks['items']):
-            print(f"Track {idx+1}: {track['name']} by {track['artists'][0]['name']}")
-            print(f"Track ID: {track['id']}")
-            all_tarck_ids.append(track['id'])
-    return all_tarck_ids
+#         # Extract relevant data from the API response
+#         for idx, track in enumerate(album_tracks['items']):
+#             print(f"Track {idx+1}: {track['name']} by {track['artists'][0]['name']}")
+#             print(f"Track ID: {track['id']}")
+#             all_tarck_ids.append(track['id'])
+#     return all_tarck_ids
 
 def get_artist_discography(name):
     """Get the artist's discography from Spotify and print the track names and ids.
@@ -723,6 +891,18 @@ def get_friends_activity_json():
 
 # create the file if it does not exist
 def create_file(file_name):
+    """Create a csv file if it does not exist and return the file as a pandas dataframe.
+
+    Parameters
+    ----------
+    file_name : str
+        The name of the csv file.
+
+    Returns
+    -------
+    friends_activity : pandas dataframe
+        A pandas dataframe containing the data from the csv file.
+    """
     # check if the file exists
     try:
         # read the csv file
@@ -736,6 +916,7 @@ def create_file(file_name):
         friends_activity = pd.read_csv(file_name)
     return friends_activity
 
+# for  'friends_activity.csv', 'friend_activity.csv', 'recently_played_tracks.csv', 'friends_activity.sqlite'
 # push the data files to github regularly
 def push_to_github(files):
     """
@@ -761,6 +942,18 @@ def push_to_github(files):
     subprocess.check_output(["git", "commit", "-m", commit_message])
     subprocess.check_output(["git", "push"])
 
+# this loop will keep running until we get the json response, if we get None as response then it will keep running
+def keep_trying_until_get_friends_activity_json():
+    """
+    Description
+    -----------
+    Keep trying to get the friends activity json until we get it.
+    """
+    while True:
+        friends_activity_json = get_friends_activity_json()
+        if friends_activity_json != None:
+            break
+        else: time.sleep(60)
 
 # # write a funciton to store friends activity to a csv file
 def store_friends_activity():
@@ -772,16 +965,11 @@ def store_friends_activity():
         """
         checking if the files where I store tracks exists, else create them
         """
-        
         friend_activity_csv = create_file('friend_activity.csv')
         friends_activity_csv = create_file('friends_activity.csv')
 
-# this loop will keep running until the we get the json response, if we get None as response then it will keep running
-        while True:
-            friends_activity_json = get_friends_activity_json()
-            if friends_activity_json != None:
-                break
-            else: time.sleep(60)
+        # get the friends activity json
+        friends_activity_json = keep_trying_until_get_friends_activity_json()
 
         # get the current time, will help to know when the user was listening to the song
         staring_time = datetime.datetime.now()
