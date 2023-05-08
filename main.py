@@ -513,12 +513,42 @@ def get_user_playlist_tracks_info(playlist_id):
 
 # returns a json of recommended tracks according to the seed artists, genres and tracks
 def get_recommendations(seed_artists, seed_genres, seed_tracks):
-    # returns a json of recommended tracks according to the seed artists, genres and tracks
+    """ returns a json of recommended tracks according to the seed artists, genres and tracks
+
+    Parameters
+    ----------
+    seed_artists : list
+        A list of Spotify ID/IDs for seed artists.
+    seed_genres : list
+        A list of any genres in the set of available genre seeds.
+    seed_tracks : list
+        A list of Spotify ID/IDs for seed tracks.
+
+    Returns
+    -------
+    recommendations : dict
+        A json of recommended tracks according to the seed artists, genres and tracks
+    """
     recommendations = user_top_read.recommendations(seed_artists=seed_artists, seed_genres=seed_genres, seed_tracks=seed_tracks)
     return recommendations
 
-# get important info from recommendations json
 def get_recommendations_info(seed_artists, seed_genres, seed_tracks):
+    """ returns a list of dictionaries containing the important info from recommendations json
+
+    Parameters
+    ----------
+    seed_artists : list
+        A list of Spotify ID/IDs for seed artists.
+    seed_genres : list
+        A list of any genres in the set of available genre seeds.
+    seed_tracks : list
+        A list of Spotify ID/IDs for seed tracks.
+
+    Returns
+    -------
+    recommendations_info : list
+        A list of dictionaries containing the important info from recommendations json
+    """
     # get the json of the recommended tracks
     recommendations = get_recommendations(seed_artists, seed_genres, seed_tracks)
     recommendations_info = []
@@ -531,21 +561,49 @@ def get_recommendations_info(seed_artists, seed_genres, seed_tracks):
 
 # returns the user's saved albums in a list
 def get_saved_albums():
+    """
+    Returns
+    -------
+    saved_albums : list
+        The user's saved albums in a list
+    """
     saved_albums = user_library_read.current_user_saved_albums()
     return saved_albums
 
 # returns the user's saved shows in a list
 def get_saved_shows():
+    """
+    Returns
+    -------
+    saved_shows : list
+        The user's saved shows in a list
+    """
     saved_shows = user_library_read.current_user_saved_shows()
     return saved_shows
 
 # returns the user's saved episodes in a list
 def get_saved_episodes():
+    """
+    Returns
+    -------
+    saved_episodes : list
+        The user's saved episodes in a list
+    """
     saved_episodes = user_library_read.current_user_saved_episodes()
     return saved_episodes
 
-# returns the user's library tracks in a list
 def get_library_info(limit):
+    """
+    Parameters
+    ----------
+    limit : int
+        The number of tracks to return. Default: 20. Minimum: 1. Maximum: 50.
+    
+    Returns
+    -------
+    library_df : pandas dataframe
+        The user's library data in a pandas dataframe
+    """
     # get the user's library data
     library = user_library_read.current_user_saved_tracks(limit=limit)
     # convert the library data to a dataframe
@@ -554,6 +612,26 @@ def get_library_info(limit):
 
 # Define a function to get the value of a nested key from a dictionary
 def get_nested_value(dictionary, keys, default=''):
+    """ Returns the value of a nested key from a dictionary
+
+    Parameters
+    ----------
+    dictionary : dict
+        The dictionary to get the value from
+    keys : list
+        A list of keys to get the value from
+    default : str
+        The default value to return if the key is not found
+
+    Returns
+    -------
+    dictionary : dict
+        The dictionary to get the value from
+    keys : list
+        A list of keys to get the value from
+    default : str
+        The default value to return if the key is not found
+    """
     # Loop through the keys
     for key in keys:
         # Try to get the value of the current key
@@ -574,7 +652,7 @@ def get_user_playlists_info():
 
     Returns:
     -------
-    user_playlists_info: list of dictionaries 
+    user_playlists_info: list of dictionaries
     """
     user_playlists = get_user_playlists()
     user_playlists_info = []
@@ -613,6 +691,18 @@ def store_user_playlists_info():
 
 # get the commands stored in the playlist name or description
 def gather_functions(string):
+    """ uses regex to get the commands stored in the playlist name or description
+
+    Parameters
+    ----------
+    string : str
+        The string to get the functions from
+
+    Returns
+    -------
+    functions : list
+        A list of functions that contains a list of words(commands) to be performed on the playlist
+    """
     # lowercases the string
     test = string.lower()
     # write a regex to get the artist which should return swans
@@ -969,6 +1059,7 @@ def store_friends_activity():
         friends_activity_csv = create_file('friends_activity.csv')
 
         # get the friends activity json
+        # try again and again until we get the json response from the node.js script
         friends_activity_json = keep_trying_until_get_friends_activity_json()
 
         # get the current time, will help to know when the user was listening to the song
