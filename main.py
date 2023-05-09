@@ -1047,6 +1047,26 @@ def keep_trying_until_get_friends_activity_json():
             break
         else: time.sleep(60)
 
+def user_id_to_user_uri(users = ["gntab9tp1cc5qipthodlvvsm3"]):
+    """
+    Description
+    -----------
+    Convert a list of user ids to user uris.
+
+    Parameters
+    ----------
+    users : list
+        A list of user ids.
+
+    Returns
+    -------
+    user_uris : list
+        A list of user uris.
+    """
+    user_ids = ["spotify:user:" + user_id for user_id in user_ids]
+    return user_ids
+
+
 # # write a funciton to store friends activity to a csv file
 def store_friends_activity():
     # times got the same song in a row
@@ -1054,6 +1074,7 @@ def store_friends_activity():
     # this is where all the tracks from the selected user will be stored
     playlist_id = "5XV9floz2zzeWiAcduWBkc"
     while True:
+        """ ATTENTION NEED TO UPDATED store to sql database instead of csv file"""
         # create the files if they don't exist
         friend_activity_csv = create_file('friend_activity.csv')
         friends_activity_csv = create_file('friends_activity.csv')
@@ -1067,78 +1088,74 @@ def store_friends_activity():
         
         # yeah I can use the only one but not sure if it well break the code so I am just gonna leave it
         current_time = datetime.datetime.now()
-        
-        user_ids = ["gntab9tp1cc5qipthodlvvsm3"]
-        # https://open.spotify.com/user/?si=e2661c9f8729463c
-        user_id = ["spotify:user:" + user_id for user_id in user_ids]
+
         # try and except if there's a key error
         try:
-            
             # iterate through the friends activity
             for friend in friends_activity_json['friends']:    
-                    # check if the user uri is the same as the user uri
-                    if friend['user']['uri'] in user_id:        # only for some selected users
-                        print('user uri', friend['user']['name'])
-                        # the id of the particular track the particular user is listening to
-                        track_id = friend['track']['uri'].split(":")[-1]
-                        # check if the track is same as the previous track don't add it to the csv file
+                # check if the user uri is the same as the user uri
+                if friend['user']['uri'] in user_id_to_user_uri():        # only for some selected users
+                    print('user uri', friend['user']['name'])
+                    # the id of the particular track the particular user is listening to
+                    track_id = friend['track']['uri'].split(":")[-1]
+                    # check if the track is same as the previous track don't add it to the csv file
 
-                        """ This will run if the csv file is empty or if the track is not the same as the previous track"""
-                        try:
-                            """            continue trying if listening to the same song                             
-                            """
-                            # this means the person is listening to the same song as the previous song
-                            if friend['track']['uri'] == friend_activity_csv['track_uri'].iloc[-1]:
-                                # print the song name
-                                print('listning to the same song',friend['track']['name'])
-                                same_song += 1
-                                print("Got the same song", same_song, "times")
-                                continue
-                        except IndexError:
-                            pass
-                        # write the data to the csv file
-                        with open('friend_activity.csv', 'a', newline='') as file:
-                            writer = csv.writer(file)
-                            writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
-                            print('adding to the database', friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time)
-                            same_song = 0
+                    """ This will run if the csv file is empty or if the track is not the same as the previous track"""
+                    try:
+                        """            continue trying if listening to the same song                             
+                        """
+                        # this means the person is listening to the same song as the previous song
+                        if friend['track']['uri'] == friend_activity_csv['track_uri'].iloc[-1]:
+                            # print the song name
+                            print('listning to the same song',friend['track']['name'])
+                            same_song += 1
+                            print("Got the same song", same_song, "times")
+                            continue
+                    except IndexError:
+                        pass
+                    # write the data to the csv file
+                    with open('friend_activity.csv', 'a', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
+                        print('adding to the database', friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time)
+                        same_song = 0
 
-                        # get all the playlist tracks from the playlist
-                        the_playlist_tracks = get_playlist_tracks_retry(playlist_id)
-                        song_id = friend['track']['uri'].split(":")[-1]
-                        '''add the track to the playlist if it is not already in the playlist '''
-                        # print(song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks])
+                    # get all the playlist tracks from the playlist
+                    the_playlist_tracks = get_playlist_tracks_retry(playlist_id)
+                    song_id = friend['track']['uri'].split(":")[-1]
+                    '''add the track to the playlist if it is not already in the playlist '''
+                    # print(song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks])
+                    print(song_id)
+                    # if the track is not in the playlist add it to the playlist
+                    if song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks]:
+                        # add the track to the playlist
                         print(song_id)
-                        # if the track is not in the playlist add it to the playlist
-                        if song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks]:
-                            # add the track to the playlist
-                            print(song_id)
-                            # print song name
-                            print("adding", friend['track']['name'], "to the playlist song_id:", song_id)
-                            # sp.user_playlist_add_tracks(username, playlist_id, [song_id])
-                            # keep trying to add the track to the playlist
-                            retring = 0
-                            while True:
-                                try:
-                                    playlist_modify_private.user_playlist_add_tracks(username, playlist_id, [song_id])
-                                    break
-                                except:
-                                    print("error adding the track to the playlist")
-                                    if retring < 2:
-                                        time.sleep(10)
-                                    elif retring < 4:
-                                        time.sleep(20)
-                                    else:
-                                        time.sleep(30)
-                            
-                        # if the track is already in the playlist move it to the bottom of the playlist, means the track has been played
-                        else:
-                            # get the index of the track
-                            track_index = [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks].index(song_id)
-                            playlist_modify_private.user_playlist_reorder_tracks(username, playlist_id, track_index, len(the_playlist_tracks), range_length=1)
+                        # print song name
+                        print("adding", friend['track']['name'], "to the playlist song_id:", song_id)
+                        # sp.user_playlist_add_tracks(username, playlist_id, [song_id])
+                        # keep trying to add the track to the playlist
+                        retring = 0
+                        while True:
+                            try:
+                                playlist_modify_private.user_playlist_add_tracks(username, playlist_id, [song_id])
+                                break
+                            except:
+                                print("error adding the track to the playlist")
+                                if retring < 2:
+                                    time.sleep(10)
+                                elif retring < 4:
+                                    time.sleep(20)
+                                else:
+                                    time.sleep(30)
+                        
+                    # if the track is already in the playlist move it to the bottom of the playlist, means the track has been played
+                    else:
+                        # get the index of the track
+                        track_index = [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks].index(song_id)
+                        playlist_modify_private.user_playlist_reorder_tracks(username, playlist_id, track_index, len(the_playlist_tracks), range_length=1)
 
 
-                        """find a way to play the track"""
+                    """find a way to play the track"""
 
             """    The following code is needed to be updated, so that It would store the data to a json database not in a json file"""
             # run this code every 30 minutes using start_time and reset the start_time
