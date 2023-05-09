@@ -960,17 +960,19 @@ def get_friends_activity_json():
     friends_activity_json : dict or None
         A dictionary containing the friends activity data, or None if an error occurs.
     """
+    
     # Path to the node.js script
     path_to_script = r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"
     # path_to_script = os.path.join("C:", "Users", "saket", "Documents", "GitHub", "Pyhton", "Project Music", "spotify api", "spotify-buddylist-master", "example.js")
 
-    try:
+    while True:
         # Run the node.js script and get the output as bytes
         friends_activity_bytes = subprocess.check_output(["node", path_to_script])
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        return None
-        # return e.output
+        # friends_activity_json = get_friends_activity_json()
+        if friends_activity_bytes != None:
+            break
+        else: time.sleep(60)
+
     # Decode the bytes to string
     friends_activity_str = friends_activity_bytes.decode("utf-8")
     # Convert the string to json object
@@ -1052,15 +1054,13 @@ def store_friends_activity():
     # this is where all the tracks from the selected user will be stored
     playlist_id = "5XV9floz2zzeWiAcduWBkc"
     while True:
-        """
-        checking if the files where I store tracks exists, else create them
-        """
+        # create the files if they don't exist
         friend_activity_csv = create_file('friend_activity.csv')
         friends_activity_csv = create_file('friends_activity.csv')
 
         # get the friends activity json
         # try again and again until we get the json response from the node.js script
-        friends_activity_json = keep_trying_until_get_friends_activity_json()
+        friends_activity_json = get_friends_activity_json()
 
         # get the current time, will help to know when the user was listening to the song
         staring_time = datetime.datetime.now()
