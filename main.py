@@ -1071,7 +1071,7 @@ def user_id_to_user_uri(users = ["gntab9tp1cc5qipthodlvvsm3"]):
 
 
 # define a function to store the user data to a database
-def store_user_data_to_database(friends_activity_json = main.get_friends_activity_json(), database_name='friends_activity.db'):
+def store_user_data_to_database(friends_activity_json = get_friends_activity_json(), database_name='friends_activity.db'):
     '''
     This function is divided into 2 parts:
     - Create the database and tables if they do not exist
@@ -1283,59 +1283,25 @@ def print_the_data_from_the_database():
     conn = sqlite3.connect('friends_activity.db')
     cur = conn.cursor()
 
-    #select all the data from the users table
-    cur.execute("SELECT * FROM users")
-    users = cur.fetchall()
+    # define a function that takes a table name as an argument and prints all the data from that table
+    def print_table_data(table_name):
+        # select all the data from the table
+        cur.execute(f"SELECT * FROM {table_name}")
+        data = cur.fetchall()
 
-    #print the user data
-    print("Users:")
-    for user in users:
-        print(user)
+        # print the table name and the data
+        print(f"{table_name.capitalize()}:")
+        for row in data:
+            print(row)
 
-    #select all the data from the albums table
-    cur.execute("SELECT * FROM albums")
-    albums = cur.fetchall()
+        # call the function for each table
+        print_table_data("users")
+        print_table_data("albums")
+        print_table_data("artists")
+        print_table_data("tracks")
+        print_table_data("context")
+        print_table_data("streamings")
 
-    #print the album data
-    print("Albums:")
-    for album in albums:
-        print(album)
-
-    #select all the data from the artists table
-    cur.execute("SELECT * FROM artists")
-    artists = cur.fetchall()
-
-    #print the artist data
-    print("Artists:")
-    for artist in artists:
-        print(artist)
-
-    #select all the data from the tracks table
-    cur.execute("SELECT * FROM tracks")
-    tracks = cur.fetchall()
-
-    #print the track data
-    print("Tracks:")
-    for track in tracks:
-        print(track)
-
-    #select all the data from the context table
-    cur.execute("SELECT * FROM context")
-    context = cur.fetchall()
-
-    #print the context data
-    print("Context:")
-    for c in context:
-        print(c)
-
-    #select all the data from the streamings table
-    cur.execute("SELECT * FROM streamings")
-    streamings = cur.fetchall()
-
-    #print the streaming data
-    print("Streamings:")
-    for streaming in streamings:
-        print(streaming)
 
 
 # # write a funciton to store friends activity to a csv file
@@ -1352,7 +1318,8 @@ def store_friends_activity():
 
         # get the friends activity json
         # try again and again until we get the json response from the node.js script
-        friends_activity_json = get_friends_activity_json()
+        # friends_activity_json = get_friends_activity_json()
+        store_user_data_to_database()
 
         # get the current time, will help to know when the user was listening to the song
         staring_time = datetime.datetime.now()
