@@ -1,8 +1,9 @@
+''' didn't work because of circular import, I thought who clare just add it to main file'''
 import sqlite3
 import main
 
 # define a function to store the user data to a database
-def store_user_data_to_database(friends_activity_json, database_name='friends_activity.db'):
+def store_user_data_to_database(friends_activity_json = main.get_friends_activity_json(), database_name='friends_activity.db'):
     '''
     This function is divided into 2 parts:
     - Create the database and tables if they do not exist
@@ -273,7 +274,7 @@ def print_the_data_from_the_database():
 if __name__ == "__main__":
 
     #get the data from the JSON file
-    friends_activity_json = get_friends_activity_json()
+    # friends_activity_json = get_friends_activity_json()
 
     #store the data from the JSON file to the database
-store_user_data_to_database(friends_activity_json)
+    store_user_data_to_database()
