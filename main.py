@@ -1071,7 +1071,7 @@ def user_id_to_user_uri(users = ["gntab9tp1cc5qipthodlvvsm3"]):
 
 
 # define a function to store the user data to a database
-def store_user_data_to_database(friends_activity_json = get_friends_activity_json(), database_name='friends_activity.db'):
+def store_user_streaming_data_to_database(friends_activity_json, database_name='friends_activity.db'):
     '''
     This function is divided into 2 parts:
     - Create the database and tables if they do not exist
@@ -1270,7 +1270,7 @@ def store_user_data_to_database(friends_activity_json = get_friends_activity_jso
             cur.execute("INSERT INTO streamings (user_id, track_id, timestamp) VALUES (?, ?, ?)", (user_id, track_id, timestamp))
             conn.commit()
 
-def print_the_data_from_the_database():
+def print_the_streaming_data_from_the_database():
     '''
     This function prints:
     - all the data from the users table
@@ -1407,7 +1407,7 @@ def store_friends_activity():
                         writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
                 # reset the staring time
                 staring_time = datetime.datetime.now()
-            
+
             # wait for 30 seconds
             sec = 30
             if same_song > 10: sec = 3*60

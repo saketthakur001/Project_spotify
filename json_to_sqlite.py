@@ -1,9 +1,10 @@
 ''' didn't work because of circular import, I thought who clare just add it to main file'''
 import sqlite3
 import main
+import time
 
 # define a function to store the user data to a database
-def store_user_data_to_database(friends_activity_json = main.get_friends_activity_json(), database_name='friends_activity.db'):
+def store_user_data_to_database(friends_activity_json, database_name='friends_activity.db'):
     '''
     This function is divided into 2 parts:
     - Create the database and tables if they do not exist
@@ -96,7 +97,7 @@ def store_user_data_to_database(friends_activity_json = main.get_friends_activit
     # loop through the JSON data of friends' activity
     for data in friends_activity_json['friends']:
         # get the user data from the JSON object
-        print(data)
+        # print(data)
         user_url = data['user']['uri']
         user_name = data['user']['name']
         user_image_url = data['user']['imageUrl']
@@ -222,24 +223,50 @@ def print_the_data_from_the_database():
         data = cur.fetchall()
 
         # print the table name and the data
-        print(f"{table_name.capitalize()}:")
+        # print(f"{table_name.capitalize()}:")
         for row in data:
             print(row)
+            break
 
     # call the function for each table
+    print("user_id, user_uri, user_name, user_image_url")
     print_table_data("users")
+    print("album_id, album_uri, album_name")
     print_table_data("albums")
+    print("artist_id, artist_uri, artist_name")
     print_table_data("artists")
+    print("track_id, track_uri, track_name, track_image_url, album_id, artist_id")
     print_table_data("tracks")
+    print("context_id, context_uri, context_name, context_index")
     print_table_data("context")
+    print("streaming_id, user_id, track_id, timestamp")
     print_table_data("streamings")
 
 
+def count_down(time_in_sec):
+    '''
+    This function takes a time in seconds as an argument and prints a countdown
+    '''
+    # loop through the time in seconds
+    for i in range(time_in_sec, 0, -1):
+        # print the time in seconds
+        print(i)
+        # wait one second
+        time.sleep(1)
+
 
 if __name__ == "__main__":
-
-    #get the data from the JSON file
-    # friends_activity_json = get_friends_activity_json()
-
-    #store the data from the JSON file to the database
-    store_user_data_to_database()
+    while True:
+        try:
+            store_user_data_to_database(main.get_friends_activity_json())
+            print_the_data_from_the_database()
+            count_down(30)
+        # print the error message if the program fails
+        except Exception as e:
+            print(e)
+            count_down(30)
+        except KeyboardInterrupt:
+            break
+        except:
+            print("Something went wrong")
+            count_down(30)
