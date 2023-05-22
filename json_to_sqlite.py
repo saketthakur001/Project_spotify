@@ -21,6 +21,7 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
     - create a table for context with columns for context_id, context_uri, context_name and context_index
     - create a table for streamings with columns for user_id, track_id and timestam
     '''
+
     # connect to the database with the given name or create a new one if it does not exist
     conn = sqlite3.connect(database_name)
     cur = conn.cursor()
@@ -28,7 +29,7 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
     # create a table for users with columns for user_id, user_url, user_name and user_image_url
     cur.execute('''CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
-        user_url TEXT NOT NULL,
+        user_uri TEXT NOT NULL,
         user_name TEXT NOT NULL,
         user_image_url TEXT NOT NULL
     )
@@ -226,7 +227,7 @@ def print_the_data_from_the_database():
         # print(f"{table_name.capitalize()}:")
         for row in data:
             print(row)
-            break
+            # break
 
     # call the function for each table
     print("user_id, user_uri, user_name, user_image_url")
@@ -242,6 +243,75 @@ def print_the_data_from_the_database():
     print("streaming_id, user_id, track_id, timestamp")
     print_table_data("streamings")
 
+# define a function that takes a user_id as an argument and returns all the details about that user from the database
+def get_user_details(user_id):
+    # connect to the database
+    conn = sqlite3.connect('friends_activity.db')
+    cur = conn.cursor()
+    # create an empty dictionary to store the user details
+    user_details = {}
+    # query the users table for the user data
+    cur.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+    user_data = cur.fetchone()
+    # if the query returns None, it means there is no user with that id in the table
+    if user_data is None:
+        return None
+    # otherwise, unpack the user data and store it in the dictionary
+    else:
+        user_id, user_url, user_name, user_image_url = user_data
+        user_details['user_id'] = user_id
+        user_details['user_url'] = user_url
+        user_details['user_name'] = user_name
+        user_details['user_image_url'] = user_image_url
+        # create an empty list to store the streamings of the user
+        user_details['streamings'] = []
+        # query the streamings table for the streamings of the user
+        cur.execute("SELECT * FROM streamings WHERE user_id = ?", (user_id,))
+        streamings_data = cur.fetchall()
+        # loop through the streamings data and get the track and context details for each streaming
+        for streaming_data in streamings_data:
+            # create an empty dictionary to store the streaming details
+            streaming_details = {}
+            # unpack the streaming data and store it in the dictionary
+            streaming_user_id, track_id, timestamp = streaming_data
+            streaming_details['timestamp'] = timestamp
+            # query the tracks table for the track data
+            cur.execute("SELECT * FROM tracks WHERE track_id = ?", (track_id,))
+            track_data = cur.fetchone()
+            # unpack the track data and store it in the dictionary
+            track_id, track_uri, track_name, track_image_url, album_id, artist_id = track_data
+            streaming_details['track_uri'] = track_uri
+            streaming_details['track_name'] = track_name
+            streaming_details['track_image_url'] = track_image_url
+            # query the albums table for the album data
+            cur.execute("SELECT * FROM albums WHERE album_id = ?", (album_id,))
+            album_data = cur.fetchone()
+            # unpack the album data and store it in the dictionary
+            album_id, album_uri, album_name = album_data
+            streaming_details['album_uri'] = album_uri
+            streaming_details['album_name'] = album_name
+            # query the artists table for the artist data
+            cur.execute("SELECT * FROM artists WHERE artist_id = ?", (artist_id,))
+            artist_data = cur.fetchone()
+            # unpack the artist data and store it in the dictionary
+            artist_id, artist_uri, artist_name = artist_data
+            streaming_details['artist_uri'] = artist_uri
+            streaming_details['artist_name'] = artist_name
+            # query the context table for the context data
+            cur.execute("SELECT * FROM context WHERE context_uri IN (SELECT context_uri FROM tracks WHERE track_id = ?)", (track_id,))
+            context_data = cur.fetchone()
+            # unpack the context data and store it in the dictionary
+            context_id, context_uri, context_name, context_index = context_data
+            streaming_details['context_uri'] = context_uri
+            streaming_details['context_name'] = context_name
+            streaming_details['context_index'] = context_index
+            # append the streaming details to the list of streamings of the user
+            user_details['streamings'].append(streaming_details)
+        # return the user details dictionary 
+        return user_details
+
+# get_user_details(7)
+
 
 def count_down(time_in_sec):
     '''
@@ -253,7 +323,6 @@ def count_down(time_in_sec):
         print(i)
         # wait one second
         time.sleep(1)
-
 
 if __name__ == "__main__":
     while True:
@@ -270,3 +339,4 @@ if __name__ == "__main__":
         except:
             print("Something went wrong")
             count_down(30)
+
