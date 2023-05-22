@@ -316,6 +316,28 @@ from rich.console import Console
 # import the datetime library
 from datetime import datetime
 
+def time_variation(timestamp):
+        # get the current time in seconds
+    current_time = time.time()
+    # convert it to milliseconds by multiplying by 1000
+    current_time_in_millis = int(current_time * 1000)
+    difference = current_time_in_millis- timestamp
+    minutes = difference/60000
+    # format the time difference as a string
+    if minutes < 1:
+        time_since_played = "Just now"
+    elif minutes == 1:
+        time_since_played = "1 minute ago"
+    elif minutes < 60:
+        time_since_played = f"{round(minutes)} minutes ago"
+    elif minutes == 60:
+        time_since_played = "1 hour ago"
+    elif minutes%60 == 0:
+        time_since_played = f"{minutes/60} hours ago"
+    elif minutes >  60:
+        time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
+    return time_since_played
+
 # define a function that takes a number as a parameter and prints the last n songs by each user and the songs in details with all the correct labels
 def print_last_played_songs(n):
     # connect to the database
@@ -346,22 +368,7 @@ def print_last_played_songs(n):
             # extract the track_id and timestamp from the tuple
             track_id, timestamp = streaming
             # convert the timestamp to a datetime object
-            print(timestamp)
-            # timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
-            timestamp = datetime.fromtimestamp(int(timestamp) / 1000)
-            # get the current time as a datetime object
-            current_time = datetime.now()
-            # calculate the time difference between current time and timestamp in hours and minutes
-            time_diff = current_time - timestamp
-            hours, minutes = divmod(time_diff.seconds, 3600)
-            minutes += hours * 60
-            # format the time difference as a string
-            if minutes == 0:
-                time_since_played = "Just now"
-            elif minutes == 1:
-                time_since_played = "1 minute ago"
-            else:
-                time_since_played = f"{minutes} minutes ago"
+            time_since_played = time_variation(int(timestamp))
             # query the tracks table for the track data
             cur.execute("SELECT track_uri, track_name, track_image_url, album_id, artist_id FROM tracks WHERE track_id = ?", (track_id,))
             track_data = cur.fetchone()
@@ -385,9 +392,9 @@ def print_last_played_songs(n):
             # add a row to the table with the streaming details 
             table.add_row(user_name, time_since_played, track_uri, track_name, album_name, artist_name)
     # create a console object to print the table 
-    
     console = Console()
     console.print(table)
+
 
 # print_last_played_songs(1)
 
