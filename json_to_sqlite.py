@@ -310,63 +310,7 @@ def get_user_details(user_id):
         # return the user details dictionary 
         return user_details
 
-# # define a function that takes no arguments and prints the last played 5 songs by each user and the songs in details with all the correct labels
-# def print_last_played_songs(number_of_resuts):
-#     # connect to the database
-#     conn = sqlite3.connect('friends_activity.db')
-#     cur = conn.cursor()
-#     # query the users table for all the user_ids and user_names
-#     cur.execute("SELECT user_id, user_name FROM users")
-#     users = cur.fetchall()
-#     # loop through the users and print their names
-#     for user in users:
-#         # extract the user_id and user_name from the tuple
-#         user_id, user_name = user
-#         # print the user name
-#         print(f"User: {user_name}")
-#         # query the streamings table for the last 5 streamings of the user ordered by timestamp in descending order
-#         cur.execute("SELECT track_id, timestamp FROM streamings WHERE user_id = ? ORDER BY timestamp DESC LIMIT 2", (user_id,))
-#         streamings = cur.fetchall()
-#         # loop through the streamings and print their details
-#         for streaming in streamings:
-#             # extract the track_id and timestamp from the tuple
-#             track_id, timestamp = streaming
-#             # query the tracks table for the track data
-#             cur.execute("SELECT track_uri, track_name, track_image_url, album_id, artist_id FROM tracks WHERE track_id = ?", (track_id,))
-#             track_data = cur.fetchone()
-#             # unpack the track data and store it in variables
-#             track_uri, track_name, track_image_url, album_id, artist_id = track_data
-#             # query the albums table for the album data
-#             cur.execute("SELECT album_uri, album_name FROM albums WHERE album_id = ?", (album_id,))
-#             album_data = cur.fetchone()
-#             # unpack the album data and store it in variables
-#             album_uri, album_name = album_data
-#             # query the artists table for the artist data
-#             cur.execute("SELECT artist_uri, artist_name FROM artists WHERE artist_id = ?", (artist_id,))
-#             artist_data = cur.fetchone()
-#             # unpack the artist data and store it in variables
-#             artist_uri, artist_name = artist_data
-#             # query the context table for the context data
-#             cur.execute("SELECT context_uri, context_name, context_index FROM context WHERE context_uri IN (SELECT context_uri FROM tracks WHERE track_id = ?)", (track_id,))
-#             context_data = cur.fetchone()
-#             # unpack the context data and store it in variables
-#             context_uri, context_name, context_index = context_data
-#             # print the streaming details with labels
-#             print(f"Timestamp: {timestamp}")
-#             print(f"Track URI: {track_uri}")
-#             print(f"Track Name: {track_name}")
-#             print(f"Track Image URL: {track_image_url}")
-#             print(f"Album URI: {album_uri}")
-#             print(f"Album Name: {album_name}")
-#             print(f"Artist URI: {artist_uri}")
-#             print(f"Artist Name: {artist_name}")
-#             print(f"Context URI: {context_uri}")
-#             print(f"Context Name: {context_name}")
-#             print(f"Context Index: {context_index}")
 
-# print_last_played_songs()
-
-# get_user_details(7)
 # import the rich library
 from rich import print
 from rich.table import Table
