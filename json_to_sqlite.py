@@ -309,47 +309,59 @@ def get_user_details(user_id):
             user_details['streamings'].append(streaming_details)
         # return the user details dictionary 
         return user_details
-
-
 # import the rich library
 from rich import print
 from rich.table import Table
 from rich.console import Console
+# import the datetime library
+from datetime import datetime
 
-# define a function that takes no arguments and prints the last played 5 songs by each user and the songs in details with all the correct labels
-def print_last_played_songs():
+# define a function that takes a number as a parameter and prints the last n songs by each user and the songs in details with all the correct labels
+def print_last_played_songs(n):
     # connect to the database
     conn = sqlite3.connect('friends_activity.db')
     cur = conn.cursor()
     # query the users table for all the user_ids and user_names
     cur.execute("SELECT user_id, user_name FROM users")
     users = cur.fetchall()
-    # loop through the users and print their names
+    # create a table object with columns for streaming details
+    table = Table(show_header=True, header_style="bold magenta")
+    # sort the table by timestamp in ascending order
+    # table = table.sort_values(by="Time Since Played")
+    table.add_column("User")
+    table.add_column("Time Since Played")
+    table.add_column("Track URI")
+    table.add_column("Track Name")
+    table.add_column("Album Name")
+    table.add_column("Artist Name")
+    # loop through the users and add their streamings to the table rows
     for user in users:
         # extract the user_id and user_name from the tuple
         user_id, user_name = user
-        # print the user name in bold and green
-        print(f"[bold green]User: {user_name}[/bold green]")
-        # create a table object with columns for streaming details
-        table = Table(show_header=True, header_style="bold magenta")
-        table.add_column("Timestamp")
-        table.add_column("Track URI")
-        table.add_column("Track Name")
-        # table.add_column("Track Image URL")
-        # table.add_column("Album URI")
-        table.add_column("Album Name")
-        # table.add_column("Artist URI")
-        table.add_column("Artist Name")
-        # table.add_column("Context URI")
-        # table.add_column("Context Name")
-        # table.add_column("Context Index")
-        # query the streamings table for the last 5 streamings of the user ordered by timestamp in descending order
-        cur.execute("SELECT track_id, timestamp FROM streamings WHERE user_id = ? ORDER BY timestamp DESC LIMIT 5", (user_id,))
+        # query the streamings table for the last n streamings of the user ordered by timestamp in descending order
+        cur.execute("SELECT track_id, timestamp FROM streamings WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?", (user_id, n))
         streamings = cur.fetchall()
         # loop through the streamings and add their details to the table rows
         for streaming in streamings:
             # extract the track_id and timestamp from the tuple
             track_id, timestamp = streaming
+            # convert the timestamp to a datetime object
+            print(timestamp)
+            # timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+            timestamp = datetime.fromtimestamp(int(timestamp) / 1000)
+            # get the current time as a datetime object
+            current_time = datetime.now()
+            # calculate the time difference between current time and timestamp in hours and minutes
+            time_diff = current_time - timestamp
+            hours, minutes = divmod(time_diff.seconds, 3600)
+            minutes += hours * 60
+            # format the time difference as a string
+            if minutes == 0:
+                time_since_played = "Just now"
+            elif minutes == 1:
+                time_since_played = "1 minute ago"
+            else:
+                time_since_played = f"{minutes} minutes ago"
             # query the tracks table for the track data
             cur.execute("SELECT track_uri, track_name, track_image_url, album_id, artist_id FROM tracks WHERE track_id = ?", (track_id,))
             track_data = cur.fetchone()
@@ -371,12 +383,13 @@ def print_last_played_songs():
             # unpack the context data and store it in variables
             context_uri, context_name, context_index = context_data
             # add a row to the table with the streaming details 
-            table.add_row(timestamp, track_uri, track_name, album_name, artist_name
-            # , track_image_url, album_uri, artist_uri, context_uri, context_name, str(context_index)
-            )
-        # create a console object to print the table 
-        console = Console()
-        console.print(table)
+            table.add_row(user_name, time_since_played, track_uri, track_name, album_name, artist_name)
+    # create a console object to print the table 
+    
+    console = Console()
+    console.print(table)
+
+# print_last_played_songs(1)
 
 # print_last_played_songs()
 
@@ -396,7 +409,7 @@ if __name__ == "__main__":
         try:
             store_user_data_to_database(main.get_friends_activity_json())
             # print_the_data_from_the_database()
-            print_last_played_songs()
+            print_last_played_songs(1)
             count_down(30)
         # print the error message if the program fails
         except Exception as e:
