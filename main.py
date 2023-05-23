@@ -243,7 +243,8 @@ def get_track_info_from_json(track_dict):
             track_info[key] = None
     return track_info
 
-def get_recently_played_tracks_info():
+
+def parse_streaming_history():
     """ Get the recently played tracks info from the user.
 
     Returns
@@ -251,75 +252,117 @@ def get_recently_played_tracks_info():
     recently_played_tracks : list
         A list of dictionaries with the recently played tracks info.
     """
-    # list to store the recently played tracks
-    recently_played_tracks = []
-    # get the recently played tracks
-    recently_played = get_recently_played_tracks()
-    # iterate through all the recently played tracks
-    for i in range(len(recently_played['items'])):
-        # get the track info
-        track = recently_played['items'][i]['track']
-        # create a dictionary to store the track info
-        track_info = {
-            'track_name': track['name'],
-            'track_id': track['id'],
-            'track_duration': track['duration_ms'],
-            'track_popularity': track['popularity'],
-            'track_explicit': track['explicit'],
-            'album_name': track['album']['name'],
-            'album_id': track['album']['id'],
-            'album_release_date': track['album']['release_date'],
-            'album_release_date_precision': track['album']['release_date_precision'],
-            'album_total_tracks': track['album']['total_tracks'],
-            'album_type': track['album']['album_type'],
-            'artist_name': track['artists'][0]['name'],
-            'artist_id': track['artists'][0]['id'],
-            'played_at': recently_played['items'][i]['played_at']
-        }
-        # print the track info
-        song_name = track['name']
-        # print the track time and name
-        # print(recently_played['items'][i]['played_at'], song_name)
+    data = get_recently_played_tracks()
+    # create an empty list to store the parsed data
+    parsed_data = []
+    
+    # loop through the items in the data list
+    for item in data["items"]:
+        # get the track object
+        track = item["track"]
 
-        recently_played_tracks.append(track_info)
-    return recently_played_tracks
+        # get the artist/artists data
+        artists = track["artists"]
+        artist_names = []
+        artist_ids = []
+        for artist in artists:
+            artist_names.append(artist["name"])
+            artist_ids.append(artist["id"])
+
+        # get the album data
+        album = track["album"]
+        album_name = album["name"]
+        album_id = album["id"]
+        album_type = album["album_type"]
+        release_date = album["release_date"]
+        total_tracks = album["total_tracks"]
+
+        # get the image with 300 height from the images list
+        images = album["images"]
+        image_300 = None
+        for image in images:
+            if image["height"] == 300:
+                image_300 = image["url"]
+                break
+
+        # get the track data
+        track_name = track["name"]
+        track_number = track["track_number"]
+        duration_ms = track["duration_ms"]
+        disc_number = track["disc_number"]
+        popularity = track["popularity"]
+        preview_url = track["preview_url"]
+
+        # get the track id from the uri by removing the spotify:track: prefix
+        track_id = track["uri"].replace("spotify:track:", "")
+
+        # get the context data
+        context = item["context"]
+        context_type = context["type"]
+        uri = context["uri"]
+
+        # create a dictionary to store the parsed data for each item
+        item_data = {
+            "artist_names": artist_names,
+            "artist_ids": artist_ids,
+            "album_name": album_name,
+            "album_id": album_id,
+            "album_type": album_type,
+            "release_date": release_date,
+            "total_tracks": total_tracks,
+            "image_url": image_300,
+            "track_name": track_name,
+            "track_number": track_number,
+            "duration_ms": duration_ms,
+            "disc_number": disc_number,
+            "popularity": popularity,
+            "preview_url": preview_url,
+            "track_id": track_id,
+            "context_type": context_type,
+            "uri": uri
+        }
+
+        # append the item data to the parsed data list
+        parsed_data.append(item_data)
+    return parsed_data
+
 
 """ ATTENTION needed here Need to be updated """
 # stores the recently played tracks in a csv file
-# def store_recently_played_tracks():
-#     """stores the recently played tracks in a csv file
-#     """
-#     # get the recently played tracks
-#     recently_played_tracks = get_recently_played_tracks_info()
-#     # create a dataframe from the stored recently played tracks
-#     old_recently_played_tracks = pd.read_csv(recently_played_file_name)
-#     # create a dataframe from the list of recently played tracks
-#     new_recently_played_tracks = pd.DataFrame(recently_played_tracks)
-#     # get the last played track from the old_recently_played_tracks
-#     last_played_at = old_recently_played_tracks['played_at'].iloc[-1]
-#     # reverse the new_recently_played_tracks
-#     new_recently_played_tracks = new_recently_played_tracks.iloc[::-1]
+def store_recently_played_tracks():
+    """stores the recently played tracks in a csv file
+    """
+    # get the recently played tracks
+    recently_played_tracks = get_recently_played_tracks_info()
+    # create a dataframe from the stored recently played tracks
+    old_recently_played_tracks = pd.read_csv(recently_played_file_name)
+    # create a dataframe from the list of recently played tracks
+    new_recently_played_tracks = pd.DataFrame(recently_played_tracks)
+    # get the last played track from the old_recently_played_tracks
+    last_played_at = old_recently_played_tracks['played_at'].iloc[-1]
+    # reverse the new_recently_played_tracks
+    new_recently_played_tracks = new_recently_played_tracks.iloc[::-1]
 
-#     # iterate though all the new_recently_played_tracks and find the one which is closest to the last_played_at
-#     for i in range(len(new_recently_played_tracks)):
-#         # get the difference between the last_played_at and the current track's played_at in hours
-#         diff = (timestamp_to_time(last_played_at) - timestamp_to_time(new_recently_played_tracks['played_at'].iloc[i])).total_seconds() / 3600
-#         # if the difference is negative, then the current track is the one which was last played
-#         if diff < 0:
-#             # get the index of the new_recently_played_tracks
-#             index = i
-#             # start the new_recently_played_tracks from the index
-#             new_recently_played_tracks = new_recently_played_tracks.iloc[index:]
-#             # iterate through all the new_recently_played_tracks and print the track name and time
-#             print("Newly added tracks:")
-#             for j in range(len(new_recently_played_tracks)):
-#                 print(new_recently_played_tracks['played_at'].iloc[j], new_recently_played_tracks['track_name'].iloc[j])
-#             # add the new_recently_played_tracks to the old_recently_played_tracks, use .concat() to avoid the index being repeated
-#             old_recently_played_tracks = pd.concat([old_recently_played_tracks, new_recently_played_tracks])
-#             # save the old_recently_played_tracks to the csv file
-#             old_recently_played_tracks.to_csv(recently_played_file_name, index=False)
-#             break
-
+    # iterate though all the new_recently_played_tracks and find the one which is closest to the last_played_at
+    for i in range(len(new_recently_played_tracks)):
+        # get the difference between the last_played_at and the current track's played_at in hours
+        diff = (timestamp_to_time(last_played_at) - timestamp_to_time(new_recently_played_tracks['played_at'].iloc[i])).total_seconds() / 3600
+        # if the difference is negative, then the current track is the one which was last played
+        if diff < 0:
+            # get the index of the new_recently_played_tracks
+            index = i
+            # start the new_recently_played_tracks from the index
+            new_recently_played_tracks = new_recently_played_tracks.iloc[index:]
+            # iterate through all the new_recently_played_tracks and print the track name and time
+            print("Newly added tracks:")
+            for j in range(len(new_recently_played_tracks)):
+                print(new_recently_played_tracks['played_at'].iloc[j], new_recently_played_tracks['track_name'].iloc[j])
+            # add the new_recently_played_tracks to the old_recently_played_tracks, use .concat() to avoid the index being repeated
+            old_recently_played_tracks = pd.concat([old_recently_played_tracks, new_recently_played_tracks])
+            # save the old_recently_played_tracks to the csv file
+            old_recently_played_tracks.to_csv(recently_played_file_name, index=False)
+            break
+# modify this function so that it could store the data to a sqllite database instead of csv
 def get_top_tracks(limit=200):
     """returns the top tracks
 
@@ -934,7 +977,6 @@ def get_artist_discography(name):
             print(f"Track ID: {track['id']}")
     return all_track_ids
 
-
 # def get_friends_activity_json():
 #     """ get the friends activity using https://github.com/valeriangalliat/spotify-buddylist repository
 #     the following code runs the node.js get's the friends activity and converts it to json and returns it"""
@@ -1270,7 +1312,7 @@ def store_user_streaming_data_to_database(friends_activity_json, database_name='
             cur.execute("INSERT INTO streamings (user_id, track_id, timestamp) VALUES (?, ?, ?)", (user_id, track_id, timestamp))
             conn.commit()
 
-def print_the_streaming_data_from_the_database():
+def print_the_data_from_the_database():
     '''
     This function prints:
     - all the data from the users table
@@ -1290,21 +1332,185 @@ def print_the_streaming_data_from_the_database():
         data = cur.fetchall()
 
         # print the table name and the data
-        print(f"{table_name.capitalize()}:")
+        # print(f"{table_name.capitalize()}:")
         for row in data:
             print(row)
+            # break
 
-        # call the function for each table
-        print_table_data("users")
-        print_table_data("albums")
-        print_table_data("artists")
-        print_table_data("tracks")
-        print_table_data("context")
-        print_table_data("streamings")
+    # call the function for each table
+    print("user_id, user_uri, user_name, user_image_url")
+    print_table_data("users")
+    print("album_id, album_uri, album_name")
+    print_table_data("albums")
+    print("artist_id, artist_uri, artist_name")
+    print_table_data("artists")
+    print("track_id, track_uri, track_name, track_image_url, album_id, artist_id")
+    print_table_data("tracks")
+    print("context_id, context_uri, context_name, context_index")
+    print_table_data("context")
+    print("streaming_id, user_id, track_id, timestamp")
+    print_table_data("streamings")
 
 
 
-# # # write a funciton to store friends activity to a csv file
+# define a function that takes a user_id as an argument and returns all the details about that user from the database
+def get_user_details(user_id):
+    # connect to the database
+    conn = sqlite3.connect('friends_activity.db')
+    cur = conn.cursor()
+    # create an empty dictionary to store the user details
+    user_details = {}
+    # query the users table for the user data
+    cur.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+    user_data = cur.fetchone()
+    # if the query returns None, it means there is no user with that id in the table
+    if user_data is None:
+        return None
+    # otherwise, unpack the user data and store it in the dictionary
+    else:
+        user_id, user_url, user_name, user_image_url = user_data
+        user_details['user_id'] = user_id
+        user_details['user_url'] = user_url
+        user_details['user_name'] = user_name
+        user_details['user_image_url'] = user_image_url
+        # create an empty list to store the streamings of the user
+        user_details['streamings'] = []
+        # query the streamings table for the streamings of the user
+        cur.execute("SELECT * FROM streamings WHERE user_id = ?", (user_id,))
+        streamings_data = cur.fetchall()
+        # loop through the streamings data and get the track and context details for each streaming
+        for streaming_data in streamings_data:
+            # create an empty dictionary to store the streaming details
+            streaming_details = {}
+            # unpack the streaming data and store it in the dictionary
+            streaming_user_id, track_id, timestamp = streaming_data
+            streaming_details['timestamp'] = timestamp
+            # query the tracks table for the track data
+            cur.execute("SELECT * FROM tracks WHERE track_id = ?", (track_id,))
+            track_data = cur.fetchone()
+            # unpack the track data and store it in the dictionary
+            track_id, track_uri, track_name, track_image_url, album_id, artist_id = track_data
+            streaming_details['track_uri'] = track_uri
+            streaming_details['track_name'] = track_name
+            streaming_details['track_image_url'] = track_image_url
+            # query the albums table for the album data
+            cur.execute("SELECT * FROM albums WHERE album_id = ?", (album_id,))
+            album_data = cur.fetchone()
+            # unpack the album data and store it in the dictionary
+            album_id, album_uri, album_name = album_data
+            streaming_details['album_uri'] = album_uri
+            streaming_details['album_name'] = album_name
+            # query the artists table for the artist data
+            cur.execute("SELECT * FROM artists WHERE artist_id = ?", (artist_id,))
+            artist_data = cur.fetchone()
+            # unpack the artist data and store it in the dictionary
+            artist_id, artist_uri, artist_name = artist_data
+            streaming_details['artist_uri'] = artist_uri
+            streaming_details['artist_name'] = artist_name
+            # query the context table for the context data
+            cur.execute("SELECT * FROM context WHERE context_uri IN (SELECT context_uri FROM tracks WHERE track_id = ?)", (track_id,))
+            context_data = cur.fetchone()
+            # unpack the context data and store it in the dictionary
+            context_id, context_uri, context_name, context_index = context_data
+            streaming_details['context_uri'] = context_uri
+            streaming_details['context_name'] = context_name
+            streaming_details['context_index'] = context_index
+            # append the streaming details to the list of streamings of the user
+            user_details['streamings'].append(streaming_details)
+        # return the user details dictionary 
+        return user_details
+# import the rich library
+from rich import print
+from rich.table import Table
+from rich.console import Console
+# import the datetime library
+from datetime import datetime
+
+def time_variation(timestamp):
+        # get the current time in seconds
+    current_time = time.time()
+    # convert it to milliseconds by multiplying by 1000
+    current_time_in_millis = int(current_time * 1000)
+    difference = current_time_in_millis- timestamp
+    minutes = difference/60000
+    # format the time difference as a string
+    if minutes < 1:
+        time_since_played = "Just now"
+    elif minutes == 1:
+        time_since_played = "1 minute ago"
+    elif minutes < 60:
+        time_since_played = f"{round(minutes)} minutes ago"
+    elif minutes == 60:
+        time_since_played = "1 hour ago"
+    elif minutes%60 == 0:
+        time_since_played = f"{minutes/60} hours ago"
+    elif minutes >  60:
+        time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
+    return time_since_played
+
+# define a function that takes a number as a parameter and prints the last n songs by each user and the songs in details with all the correct labels
+def print_last_played_songs(n):
+    # connect to the database
+    conn = sqlite3.connect('friends_activity.db')
+    cur = conn.cursor()
+    # query the users table for all the user_ids and user_names
+    cur.execute("SELECT user_id, user_name FROM users")
+    users = cur.fetchall()
+    # create a table object with columns for streaming details
+    table = Table(show_header=True, header_style="bold magenta")
+    # sort the table by timestamp in ascending order
+    # table = table.sort_values(by="Time Since Played")
+    table.add_column("User")
+    table.add_column("Time Since Played")
+    table.add_column("Track URI")
+    table.add_column("Track Name")
+    table.add_column("Album Name")
+    table.add_column("Artist Name")
+    # loop through the users and add their streamings to the table rows
+    for user in users:
+        # extract the user_id and user_name from the tuple
+        user_id, user_name = user
+        # query the streamings table for the last n streamings of the user ordered by timestamp in descending order
+        cur.execute("SELECT track_id, timestamp FROM streamings WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?", (user_id, n))
+        streamings = cur.fetchall()
+        # loop through the streamings and add their details to the table rows
+        for streaming in streamings:
+            # extract the track_id and timestamp from the tuple
+            track_id, timestamp = streaming
+            # convert the timestamp to a datetime object
+            time_since_played = time_variation(int(timestamp))
+            # query the tracks table for the track data
+            cur.execute("SELECT track_uri, track_name, track_image_url, album_id, artist_id FROM tracks WHERE track_id = ?", (track_id,))
+            track_data = cur.fetchone()
+            # unpack the track data and store it in variables
+            track_uri, track_name, track_image_url, album_id, artist_id = track_data
+            # query the albums table for the album data
+            cur.execute("SELECT album_uri, album_name FROM albums WHERE album_id = ?", (album_id,))
+            album_data = cur.fetchone()
+            # unpack the album data and store it in variables
+            album_uri, album_name = album_data
+            # query the artists table for the artist data
+            cur.execute("SELECT artist_uri, artist_name FROM artists WHERE artist_id = ?", (artist_id,))
+            artist_data = cur.fetchone()
+            # unpack the artist data and store it in variables
+            artist_uri, artist_name = artist_data
+            # query the context table for the context data
+            cur.execute("SELECT context_uri, context_name, context_index FROM context WHERE context_uri IN (SELECT context_uri FROM tracks WHERE track_id = ?)", (track_id,))
+            context_data = cur.fetchone()
+            # unpack the context data and store it in variables
+            context_uri, context_name, context_index = context_data
+            # add a row to the table with the streaming details 
+            table.add_row(user_name, time_since_played, track_uri, track_name, album_name, artist_name)
+    # create a console object to print the table 
+    console = Console()
+    console.print(table)
+
+
+
+"""
+write a better function
+"""
+# write a funciton to store friends activity to a csv file
 # def store_friends_activity():
 #     # times got the same song in a row
 #     same_song = 0
