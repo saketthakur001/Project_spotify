@@ -243,88 +243,100 @@ def get_track_info_from_json(track_dict):
             track_info[key] = None
     return track_info
 
-
 def parse_streaming_history():
-    """ Get the recently played tracks info from the user.
 
-    Returns
-    -------
-    recently_played_tracks : list
-        A list of dictionaries with the recently played tracks info.
-    """
-    data = get_recently_played_tracks()
-    # create an empty list to store the parsed data
-    parsed_data = []
+  # Call the get_recently_played_tracks function and store the result in a variable.
+  data = get_recently_played_tracks()
+
+  # Create an empty list to store the parsed data.
+  parsed_data = []
+
+  # Loop through the items in the data list.
+  for item in data["items"]:
+
+    # Get the track object.
+    track = item["track"]
+
+    # Get the artist/artists data.
+    artists = track["artists"]
+    artist_names = []
+    artist_ids = []
+    for artist in artists:
+      artist_names.append(artist["name"])
+      artist_ids.append(artist["id"])
+
+    # Get the album data.
+    album = track["album"]
+    album_name = album["name"]
+    album_id = album["id"]
+    album_type = album["album_type"]
+    release_date = album["release_date"]
+    total_tracks = album["total_tracks"]
+
+    # Get the image with 300 height from the images list.
+    images = album["images"]
+    image_300 = None
+    for image in images:
+      if image["height"] == 300:
+        image_300 = image["url"]
+        break
+
+    # Get the track data.
+    track_name = track["name"]
+    track_number = track["track_number"]
+    duration_ms = track["duration_ms"]
+    disc_number = track["disc_number"]
+    popularity = track["popularity"]
+    preview_url = track["preview_url"]
+
+    # Get the played_at data.
+    played_at = item["played_at"]
+
+    # Get the track id from the uri by removing the spotify:track: prefix.
+    track_id = track["uri"].replace("spotify:track:", "")
+
+    # Get the context data.
     
-    # loop through the items in the data list
-    for item in data["items"]:
-        # get the track object
-        track = item["track"]
+    try:
+      context = item["context"]
+      context_type = context["type"]
+      context_uri = context["uri"]
+    except:
+      context_uri = None
+      context_type = None
 
-        # get the artist/artists data
-        artists = track["artists"]
-        artist_names = []
-        artist_ids = []
-        for artist in artists:
-            artist_names.append(artist["name"])
-            artist_ids.append(artist["id"])
+    # Create a dictionary to store the parsed data for each item.
+    item_data = {
+      # Artist details
+      "artist_names": artist_names,
+      "artist_ids": artist_ids,
+      # Album details
+      "album_name": album_name,
+      "album_id": album_id,
+      "album_type": album_type,
+      "release_date": release_date,
+      "total_tracks": total_tracks,
+      "image_url": image_300,
+      # Track details
+      "track_name": track_name,
+      "track_number": track_number,
+      "duration_ms": duration_ms,
+      "disc_number": disc_number,
+      "popularity": popularity,
+      "preview_url": preview_url,
+      "played_at": played_at,
+      "track_id": track_id,
+      # Context details
+      "context_type": context_type,
+      "context_uri": context_uri
+    }
 
-        # get the album data
-        album = track["album"]
-        album_name = album["name"]
-        album_id = album["id"]
-        album_type = album["album_type"]
-        release_date = album["release_date"]
-        total_tracks = album["total_tracks"]
+    # Append the item data to the parsed data list.
+    parsed_data.append(item_data)
 
-        # get the image with 300 height from the images list
-        images = album["images"]
-        image_300 = None
-        for image in images:
-            if image["height"] == 300:
-                image_300 = image["url"]
-                break
+  # Return the parsed data list.
+  return parsed_data
 
-        # get the track data
-        track_name = track["name"]
-        track_number = track["track_number"]
-        duration_ms = track["duration_ms"]
-        disc_number = track["disc_number"]
-        popularity = track["popularity"]
-        preview_url = track["preview_url"]
-
-        # get the track id from the uri by removing the spotify:track: prefix
-        track_id = track["uri"].replace("spotify:track:", "")
-
-        # get the context data
-        context = item["context"]
-        context_type = context["type"]
-        uri = context["uri"]
-
-        # create a dictionary to store the parsed data for each item
-        item_data = {
-            "artist_names": artist_names,
-            "artist_ids": artist_ids,
-            "album_name": album_name,
-            "album_id": album_id,
-            "album_type": album_type,
-            "release_date": release_date,
-            "total_tracks": total_tracks,
-            "image_url": image_300,
-            "track_name": track_name,
-            "track_number": track_number,
-            "duration_ms": duration_ms,
-            "disc_number": disc_number,
-            "popularity": popularity,
-            "preview_url": preview_url,
-            "track_id": track_id,
-            "context_type": context_type,
-            "uri": uri
-        }
-
-        # append the item data to the parsed data list
-        parsed_data.append(item_data)
-    return parsed_data
 
 
 # """ ATTENTION needed here Need to be updated """
