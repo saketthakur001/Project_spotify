@@ -1004,38 +1004,38 @@ def get_artist_discography(name):
 #     # print(friends_activity)
 #     return friends_activity
 
-# def get_friends_activity_json():
-#     """using https://github.com/valeriangalliat/spotify-buddylist repository
-#     Get the friends activity from Spotify using a node.js script.
+def get_friends_activity_json():
+    """using https://github.com/valeriangalliat/spotify-buddylist repository
+    Get the friends activity from Spotify using a node.js script.
 
-#     Parameters
-#     ----------
-#     None
+    Parameters
+    ----------
+    None
 
-#     Returns
-#     -------
-#     friends_activity_json : dict or None
-#         A dictionary containing the friends activity data, or None if an error occurs.
-#     """
+    Returns
+    -------
+    friends_activity_json : dict or None
+        A dictionary containing the friends activity data, or None if an error occurs.
+    """
     
-#     # Path to the node.js script
-#     path_to_script = r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"
-#     # path_to_script = os.path.join("C:", "Users", "saket", "Documents", "GitHub", "Pyhton", "Project Music", "spotify api", "spotify-buddylist-master", "example.js")
+    # Path to the node.js script
+    path_to_script = r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"
+    # path_to_script = os.path.join("C:", "Users", "saket", "Documents", "GitHub", "Pyhton", "Project Music", "spotify api", "spotify-buddylist-master", "example.js")
 
-#     while True:
-#         # Run the node.js script and get the output as bytes
-#         friends_activity_bytes = subprocess.check_output(["node", path_to_script])
-#         # friends_activity_json = get_friends_activity_json()
-#         if friends_activity_bytes != None:
-#             break
-#         else: time.sleep(60)
+    while True:
+        # Run the node.js script and get the output as bytes
+        friends_activity_bytes = subprocess.check_output(["node", path_to_script])
+        # friends_activity_json = get_friends_activity_json()
+        if friends_activity_bytes != None:
+            break
+        else: time.sleep(60)
 
-#     # Decode the bytes to string
-#     friends_activity_str = friends_activity_bytes.decode("utf-8")
-#     # Convert the string to json object
-#     friends_activity_json = json.loads(friends_activity_str)
-#     # Return the json object
-#     return friends_activity_json
+    # Decode the bytes to string
+    friends_activity_str = friends_activity_bytes.decode("utf-8")
+    # Convert the string to json object
+    friends_activity_json = json.loads(friends_activity_str)
+    # Return the json object
+    return friends_activity_json
 ## get_friends_activity_json()
 
 # create the file if it does not exist
