@@ -368,10 +368,13 @@ def time_variation(timestamp):
         time_since_played = f"{round(minutes)} minutes ago"
     elif minutes == 60:
         time_since_played = "1 hour ago"
-    elif minutes%60 == 0:
+    elif minutes%60 == 0 and minutes < 24*60:
         time_since_played = f"{minutes/60} hours ago"
-    elif minutes >  60:
+    elif minutes >  60 and minutes < 24*60:
         time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
+    elif minutes > 24*60:
+        print(("I am liike what"))
+        time_since_played = f"{round(minutes//(24*60))} days ago"
     return time_since_played
 
 # define a function that takes a number as a parameter and prints the last n songs by each user and the songs in details with all the correct labels
