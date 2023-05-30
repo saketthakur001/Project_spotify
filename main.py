@@ -130,7 +130,7 @@ def get_recently_played_tracks(limit=50):
     -------
     recently_played : dict
     """
-    recently_played = user_read_recently_played.current_user_recently_played(limit=limit)
+    recently_played = user_read_recently_played.current_user_recently_played(limit=limit, )
     return recently_played
 
 def add_to_playlist(playlist_id, list_of_tracks):
@@ -309,10 +309,10 @@ def parse_streaming_history():
     item_data = {
       # Artist details
       "artist_names": artist_names,
-      "artist_ids": artist_ids,
+      "artist_uris": artist_ids,
       # Album details
       "album_name": album_name,
-      "album_id": album_id,
+      "album_uri": album_id,
       "album_type": album_type,
       "release_date": release_date,
       "total_tracks": total_tracks,
@@ -325,7 +325,7 @@ def parse_streaming_history():
       "popularity": popularity,
       "preview_url": preview_url,
       "played_at": played_at,
-      "track_id": track_id,
+      "track_uri": track_id,
       # Context details
       "context_type": context_type,
       "context_uri": context_uri

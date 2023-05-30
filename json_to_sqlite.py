@@ -2,7 +2,8 @@
 import sqlite3
 import main
 import time
-
+import subprocess
+import json
 
 def get_friends_activity_json():
     """using https://github.com/valeriangalliat/spotify-buddylist repository
@@ -17,7 +18,7 @@ def get_friends_activity_json():
     friends_activity_json : dict or None
         A dictionary containing the friends activity data, or None if an error occurs.
     """
-    
+
     # Path to the node.js script
     path_to_script = r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"
     # path_to_script = os.path.join("C:", "Users", "saket", "Documents", "GitHub", "Pyhton", "Project Music", "spotify api", "spotify-buddylist-master", "example.js")
@@ -435,8 +436,6 @@ def print_last_played_songs(n):
     console.print(table)
 
 
-# print_last_played_songs(1)
-
 # print_last_played_songs()
 
 def count_down(time_in_sec):
@@ -466,4 +465,3 @@ if __name__ == "__main__":
         except:
             print("Something went wrong")
             count_down(30)
-
