@@ -1,9 +1,8 @@
-''' didn't work because of circular import, I thought who clare just add it to main file'''
 import sqlite3
-import main
 import time
 import subprocess
 import json
+from dateutil import parser
 
 def get_friends_activity_json():
     """using https://github.com/valeriangalliat/spotify-buddylist repository
@@ -345,38 +344,12 @@ def get_user_details(user_id):
         # return the user details dictionary 
         return user_details
 
-
 # import the rich library
 from rich import print
 from rich.table import Table
 from rich.console import Console
 # import the datetime library
 from datetime import datetime
-
-def time_variation(timestamp):
-        # get the current time in seconds
-    current_time = time.time()
-    # convert it to milliseconds by multiplying by 1000
-    current_time_in_millis = int(current_time * 1000)
-    difference = current_time_in_millis- timestamp
-    minutes = difference/60000
-    # format the time difference as a string
-    if minutes < 1:
-        time_since_played = "Just now"
-    elif minutes == 1:
-        time_since_played = "1 minute ago"
-    elif minutes < 60:
-        time_since_played = f"{round(minutes)} minutes ago"
-    elif minutes == 60:
-        time_since_played = "1 hour ago"
-    elif minutes%60 == 0 and minutes < 24*60:
-        time_since_played = f"{minutes/60} hours ago"
-    elif minutes >  60 and minutes < 24*60:
-        time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
-    elif minutes > 24*60:
-        print(("I am liike what"))
-        time_since_played = f"{round(minutes//(24*60))} days ago"
-    return time_since_played
 
 # define a function that takes a number as a parameter and prints the last n songs by each user and the songs in details with all the correct labels
 def print_last_played_songs(n):
@@ -435,8 +408,31 @@ def print_last_played_songs(n):
     console = Console()
     console.print(table)
 
+def time_variation(timestamp):
+        # get the current time in seconds
+    current_time = time.time()
+    # convert it to milliseconds by multiplying by 1000
+    current_time_in_millis = int(current_time * 1000)
+    difference = current_time_in_millis- timestamp
+    minutes = difference/60000
+    # format the time difference as a string
+    if minutes < 1:
+        time_since_played = "Just now"
+    elif minutes == 1:
+        time_since_played = "1 minute ago"
+    elif minutes < 60:
+        time_since_played = f"{round(minutes)} minutes ago"
+    elif minutes == 60:
+        time_since_played = "1 hour ago"
+    elif minutes%60 == 0 and minutes < 24*60:
+        time_since_played = f"{minutes/60} hours ago"
+    elif minutes >  60 and minutes < 24*60:
+        time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
+    elif minutes > 24*60:
+        print(("I am liike what"))
+        time_since_played = f"{round(minutes//(24*60))} days ago"
+    return time_since_played
 
-# print_last_played_songs()
 
 def count_down(time_in_sec):
     '''
@@ -452,7 +448,7 @@ def count_down(time_in_sec):
 if __name__ == "__main__":
     while True:
         try:
-            store_user_data_to_database(main.get_friends_activity_json())
+            store_user_data_to_database(get_friends_activity_json())
             # print_the_data_from_the_database()
             print_last_played_songs(1)
             count_down(30)

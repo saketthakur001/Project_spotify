@@ -1,5 +1,4 @@
 """ Tracks your friends's music streaming activity on Spotify and adds the tracks to a playlist.
-
 """
 
 import sqlite3
@@ -14,6 +13,7 @@ import subprocess
 import csv
 import time
 import clint_id_secret
+from dateutil import parser
 
 # # local imports
 # import json_to_sqlite
@@ -989,21 +989,6 @@ def get_artist_discography(name):
             print(f"Track ID: {track['id']}")
     return all_track_ids
 
-# def get_friends_activity_json():
-#     """ get the friends activity using https://github.com/valeriangalliat/spotify-buddylist repository
-#     the following code runs the node.js get's the friends activity and converts it to json and returns it"""
-#     try:
-#         friends_activity = subprocess.check_output(["node", r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"])
-#     except subprocess.CalledProcessError as e:
-#         print(e.output)
-#         return None
-#     # decode the bytes to string
-#     friends_activity = friends_activity.decode("utf-8")
-#     friends_activity = json.loads(friends_activity)
-#     # return the json
-#     # print(friends_activity)
-#     return friends_activity
-
 def get_friends_activity_json():
     """using https://github.com/valeriangalliat/spotify-buddylist repository
     Get the friends activity from Spotify using a node.js script.
@@ -1125,7 +1110,7 @@ def user_id_to_user_uri(users = ["gntab9tp1cc5qipthodlvvsm3"]):
 
 
 # define a function to store the user data to a database
-def store_user_streaming_data_to_database(friends_activity_json, database_name='friends_activity.db'):
+def store_user_data_to_database(friends_activity_json, database_name='friends_activity.db'):
     '''
     This function is divided into 2 parts:
     - Create the database and tables if they do not exist
@@ -1142,6 +1127,7 @@ def store_user_streaming_data_to_database(friends_activity_json, database_name='
     - create a table for context with columns for context_id, context_uri, context_name and context_index
     - create a table for streamings with columns for user_id, track_id and timestam
     '''
+
     # connect to the database with the given name or create a new one if it does not exist
     conn = sqlite3.connect(database_name)
     cur = conn.cursor()
@@ -1149,7 +1135,7 @@ def store_user_streaming_data_to_database(friends_activity_json, database_name='
     # create a table for users with columns for user_id, user_url, user_name and user_image_url
     cur.execute('''CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
-        user_url TEXT NOT NULL,
+        user_uri TEXT NOT NULL,
         user_name TEXT NOT NULL,
         user_image_url TEXT NOT NULL
     )
@@ -1218,7 +1204,7 @@ def store_user_streaming_data_to_database(friends_activity_json, database_name='
     # loop through the JSON data of friends' activity
     for data in friends_activity_json['friends']:
         # get the user data from the JSON object
-        print(data)
+        # print(data)
         user_url = data['user']['uri']
         user_name = data['user']['name']
         user_image_url = data['user']['imageUrl']
@@ -1363,8 +1349,6 @@ def print_the_data_from_the_database():
     print("streaming_id, user_id, track_id, timestamp")
     print_table_data("streamings")
 
-
-
 # define a function that takes a user_id as an argument and returns all the details about that user from the database
 def get_user_details(user_id):
     # connect to the database
@@ -1431,34 +1415,13 @@ def get_user_details(user_id):
             user_details['streamings'].append(streaming_details)
         # return the user details dictionary 
         return user_details
+
 # import the rich library
 from rich import print
 from rich.table import Table
 from rich.console import Console
 # import the datetime library
 from datetime import datetime
-
-def time_variation(timestamp):
-        # get the current time in seconds
-    current_time = time.time()
-    # convert it to milliseconds by multiplying by 1000
-    current_time_in_millis = int(current_time * 1000)
-    difference = current_time_in_millis- timestamp
-    minutes = difference/60000
-    # format the time difference as a string
-    if minutes < 1:
-        time_since_played = "Just now"
-    elif minutes == 1:
-        time_since_played = "1 minute ago"
-    elif minutes < 60:
-        time_since_played = f"{round(minutes)} minutes ago"
-    elif minutes == 60:
-        time_since_played = "1 hour ago"
-    elif minutes%60 == 0:
-        time_since_played = f"{minutes/60} hours ago"
-    elif minutes >  60:
-        time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
-    return time_since_played
 
 # define a function that takes a number as a parameter and prints the last n songs by each user and the songs in details with all the correct labels
 def print_last_played_songs(n):
@@ -1517,7 +1480,297 @@ def print_last_played_songs(n):
     console = Console()
     console.print(table)
 
+def time_variation(timestamp):
+        # get the current time in seconds
+    current_time = time.time()
+    # convert it to milliseconds by multiplying by 1000
+    current_time_in_millis = int(current_time * 1000)
+    difference = current_time_in_millis- timestamp
+    minutes = difference/60000
+    # format the time difference as a string
+    if minutes < 1:
+        time_since_played = "Just now"
+    elif minutes == 1:
+        time_since_played = "1 minute ago"
+    elif minutes < 60:
+        time_since_played = f"{round(minutes)} minutes ago"
+    elif minutes == 60:
+        time_since_played = "1 hour ago"
+    elif minutes%60 == 0 and minutes < 24*60:
+        time_since_played = f"{minutes/60} hours ago"
+    elif minutes >  60 and minutes < 24*60:
+        time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
+    elif minutes > 24*60:
+        print(("I am liike what"))
+        time_since_played = f"{round(minutes//(24*60))} days ago"
+    return time_since_played
 
+
+def count_down(time_in_sec):
+    '''
+    This function takes a time in seconds as an argument and prints a countdown
+    '''
+    # loop through the time in seconds
+    for i in range(time_in_sec, 0, -1):
+        # print the time in seconds
+        print(i)
+        # wait one second
+        time.sleep(1)
+
+if __name__ == "__main__":
+    while True:
+        try:
+            store_user_data_to_database(get_friends_activity_json())
+            # print_the_data_from_the_database()
+            print_last_played_songs(1)
+            count_down(30)
+        # print the error message if the program fails
+        except Exception as e:
+            print(e)
+            count_down(30)
+        except KeyboardInterrupt:
+            break
+        except:
+            print("Something went wrong")
+            count_down(30)
+
+
+"""My streaming history"""
+# define a function to store streaming activity data to a database
+def store_streaming_data_to_database(streaming_activity_json, database_name='MyStreamingHistory.db'):
+    '''
+    This function is divided into 2 parts:
+    - Create the database and tables if they do not exist
+    - Loop through the JSON data of streaming activity and store the data to the database
+    '''
+
+    # connect to the database with the given name or create a new one if it does not exist
+    conn = sqlite3.connect(database_name)
+    cur = conn.cursor()
+
+    # create a table for albums with columns for album_id, album_uri, album_name, album_type, release_date, total_tracks and image_url
+    cur.execute('''CREATE TABLE IF NOT EXISTS albums (
+        album_id INTEGER PRIMARY KEY,
+        album_uri TEXT NOT NULL,
+        album_name TEXT NOT NULL,
+        album_type TEXT NOT NULL,
+        release_date TEXT NOT NULL,
+        total_tracks INTEGER NOT NULL,
+        image_url TEXT NOT NULL
+        )
+    ''')
+
+    # create a table for artists with columns for artist_id, artist_uri and artist_name
+    cur.execute('''CREATE TABLE IF NOT EXISTS artists(
+        artist_id INTEGER PRIMARY KEY,
+        artist_uri TEXT NOT NULL,
+        artist_name TEXT NOT NULL
+        )
+    ''')
+
+    # create a table for tracks with columns for track_id, track_uri, track_name, track_number, duration_ms, disc_number, popularity, preview_url, album_id and artist_id
+    # add foreign key constraints to reference the album_id and artist_id from the albums and artists tables respectively
+    cur.execute('''CREATE TABLE IF NOT EXISTS tracks (
+        track_id INTEGER PRIMARY KEY,
+        track_uri TEXT NOT NULL,
+        track_name TEXT NOT NULL,
+        track_number INTEGER NOT NULL,
+        duration_ms INTEGER NOT NULL,
+        disc_number INTEGER NOT NULL,
+        popularity INTEGER NOT NULL,
+        preview_url TEXT,
+        album_id INTEGER NOT NULL,
+        artist_id INTEGER NOT NULL,
+        FOREIGN KEY (album_id) REFERENCES albums(album_id),
+        FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
+        )
+    ''')
+
+    # create a table for streamings with columns for track_id and played_at
+    # add foreign key constraints to reference the track_id from the tracks table
+    cur.execute('''CREATE TABLE IF NOT EXISTS streamings(
+        track_id INTEGER NOT NULL,
+        played_at TEXT NOT NULL,
+        FOREIGN KEY (track_id) REFERENCES tracks(track_id)
+        )
+    ''')
+
+    # loop through the JSON data of streaming activity
+    for data in streaming_activity_json:
+        # get the album data from the JSON object
+        album_uri = data['album_uri']
+        album_name = data['album_name']
+        album_type = data['album_type']
+        release_date = data['release_date']
+        total_tracks = data['total_tracks']
+        image_url = data['image_url']
+
+        # check if the album already exists in the albums table by querying the album_uri column
+        cur.execute("SELECT album_id FROM albums WHERE album_uri = ?", (album_uri,))
+        album_id = cur.fetchone()
+
+        # if the query returns None, it means the album does not exist in the table
+        if album_id is None:
+            # insert a new row into the albums table with the album data and get the generated album_id value
+            cur.execute("INSERT INTO albums (album_uri, album_name, album_type, release_date, total_tracks, image_url) VALUES (?, ?, ?, ?, ?, ?)", (album_uri, album_name, album_type, release_date, total_tracks, image_url))
+            conn.commit()
+            album_id = cur.lastrowid
+        else:
+            # if the query returns a tuple, it means the album already exists in the table and extract the first element of the tuple as the album_id value
+            album_id = album_id[0]
+
+        # get the artist data from the JSON object
+        artist_uris = data['artist_uris']
+        artist_names = data['artist_names']
+
+        # loop through the artist_uris and artist_names lists
+        for i in range(len(artist_uris)):
+            # get the artist_uri and artist_name at index i
+            artist_uri = artist_uris[i]
+            artist_name = artist_names[i]
+
+            # check if the artist already exists in the artists table by querying the artist_uri column
+            cur.execute("SELECT artist_id FROM artists WHERE artist_uri = ?", (artist_uri,))
+            artist_id = cur.fetchone()
+
+            # if the query returns None, it means the artist does not exist in the table
+            if artist_id is None:
+                # insert a new row into the artists table with the artist data and get the generated artist_id value
+                cur.execute("INSERT INTO artists (artist_uri, artist_name) VALUES (?, ?)", (artist_uri, artist_name))
+                conn.commit()
+                artist_id = cur.lastrowid
+            else:
+                # if the query returns a tuple, it means the artist already exists in the table and extract the first element of the tuple as the artist_id value
+                artist_id = artist_id[0]
+
+        # get the track data from the JSON object
+        track_uri = data['track_uri']
+        track_name = data['track_name']
+        track_number = data['track_number']
+        duration_ms = data['duration_ms']
+        disc_number = data['disc_number']
+        popularity = data['popularity']
+        preview_url = data['preview_url']
+
+        # check if the track already exists in the tracks table by querying the track_uri column
+        cur.execute("SELECT track_id FROM tracks WHERE track_uri = ?", (track_uri,))
+        track_id = cur.fetchone()
+
+        # if the query returns None, it means the track does not exist in the table
+        if track_id is None:
+            # insert a new row into the tracks table with the track data and get the generated track_id value
+            cur.execute("INSERT INTO tracks (track_uri, track_name, track_number, duration_ms, disc_number, popularity, preview_url, album_id, artist_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (track_uri, track_name, track_number, duration_ms, disc_number, popularity, preview_url, album_id, artist_id))
+            conn.commit()
+            track_id = cur.lastrowid
+        else:
+            # if the query returns a tuple, it means the track already exists in the table and extract the first element of the tuple as the track_id value
+            track_id = track_id[0]
+
+        # get the played_at data from the JSON object
+        played_at = data['played_at']
+        # played_at = data['played_at']
+        parsed_time = parser.parse(played_at)
+        played_at = parsed_time.timestamp() * 1000
+
+        # check if there is already a streaming with the same played_at in the streamings table by querying the played_at column
+        cur.execute("SELECT * FROM streamings WHERE played_at = ?", (played_at,))
+        streaming = cur.fetchone()
+
+        # if the query returns None, it means there is no streaming with the same played_at in the table
+        if streaming is None:
+            # insert a new row into the streamings table with the track_id and played_at values
+            cur.execute("INSERT INTO streamings (track_id, played_at) VALUES (?, ?)", (track_id, played_at))
+            conn.commit()
+
+    # close the connection
+    conn.close()
+
+# define a function that prints the database with some parameters
+def print_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None):
+    '''
+    This function prints the database with some parameters
+    - database_name: the name of the database file to connect to
+    - table_name: the name of the table to print, if None, print all tables
+    - limit: the number of rows to print, if None, print all rows
+    - order_by: the column name to sort the rows by, if None, use the default order
+    '''
+
+    # connect to the database with the given name
+    conn = sqlite3.connect(database_name)
+    cur = conn.cursor()
+
+    # get the list of table names from the database
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    table_names = [row[0] for row in cur.fetchall()]
+
+    # if table_name is None or not valid, print all tables
+    if table_name is None or table_name not in table_names:
+        for table in table_names:
+            # print the table name
+            print(f"Table: {table}")
+
+            # get the column names from the table
+            cur.execute(f"PRAGMA table_info({table})")
+            column_names = [row[1] for row in cur.fetchall()]
+
+            # print the column names as headers
+            print(*column_names, sep='\t')
+
+            # construct the SQL query to select rows from the table
+            sql = f"SELECT * FROM {table}"
+
+            # if order_by is not None and valid, add it to the query
+            if order_by is not None and order_by in column_names:
+                sql += f" ORDER BY {order_by}"
+
+            # if limit is not None and positive, add it to the query
+            if limit is not None and limit > 0:
+                sql += f" LIMIT {limit}"
+
+            # execute the query and fetch the rows
+            cur.execute(sql)
+            rows = cur.fetchall()
+
+            # print the rows as values
+            for row in rows:
+                print(*row, sep='\t')
+
+            # print a blank line after each table
+            print()
+
+    else:
+        # if table_name is valid, print only that table
+        # print the table name
+        print(f"Table: {table_name}")
+
+        # get the column names from the table
+        cur.execute(f"PRAGMA table_info({table_name})")
+        column_names = [row[1] for row in cur.fetchall()]
+
+        # print the column names as headers
+        print(*column_names, sep='\t')
+
+        # construct the SQL query to select rows from the table
+        sql = f"SELECT * FROM {table_name}"
+
+        # if order_by is not None and valid, add it to the query
+        if order_by is not None and order_by in column_names:
+            sql += f" ORDER BY {order_by}"
+
+        # if limit is not None and positive, add it to the query
+        if limit is not None and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # execute the query and fetch the rows
+        cur.execute(sql)
+        rows = cur.fetchall()
+
+        # print the rows as values
+        for row in rows:
+            print(*row, sep='\t')
+
+    # close the connection
+    conn.close()
 
 """
 write a better function
