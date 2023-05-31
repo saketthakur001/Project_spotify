@@ -14,6 +14,10 @@ import csv
 import time
 import clint_id_secret
 from dateutil import parser
+import sys
+from threading import Thread, Timer
+import time
+
 
 # # local imports
 # import json_to_sqlite
@@ -1658,7 +1662,7 @@ def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
     conn.close()
 
 # define a function that prints the database with some parameters
-def print_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None):
+def print_my_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None):
     '''
     This function prints the database with some parameters
     - database_name: the name of the database file to connect to
@@ -1744,6 +1748,95 @@ def print_database(database_name='MyStreamingHistory.db', table_name=None, limit
     # close the connection
     conn.close()
 
+def display_data_from_database(database_name='MyStreamingHistory.db', table_name=None, columns=None, rows=None):
+    '''
+    This function is used to display the data from a given database and table.
+    It can also filter the data by specifying the columns and rows to show.
+    If no table name is given, it will show all the tables in the database.
+    If no columns are given, it will show all the columns in the table.
+    If no rows are given, it will show all the rows in the table.
+
+    Parameters:
+    - database_name: The name of the database file to connect to.
+    - table_name: The name of the table to display the data from. If None, all tables in the database will be shown.
+    - columns: A list of column names to display. If None, all columns will be shown.
+    - rows: A list of values to filter the data rows. If None, no row filtering will be applied.
+
+    Returns:
+    - None
+    '''
+
+    # import pandas and sqlite3 modules
+    import pandas as pd
+    import sqlite3
+
+    # connect to the database with the given name
+    conn = sqlite3.connect(database_name)
+    cur = conn.cursor()
+
+    # if no table name is given, show all the tables in the database
+    if table_name is None:
+        # query the sqlite_master table to get the names of all the tables
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cur.fetchall()
+        # loop through the tables and display their names
+        print(f"Tables in {database_name}:")
+        for table in tables:
+            print(table[0])
+        # close the connection
+        conn.close()
+        # return None
+        return None
+
+    # if a table name is given, show the data from that table
+    else:
+        # if no columns are given, show all the columns in the table
+        if columns is None:
+            # query the PRAGMA table_info to get the names of all the columns
+            cur.execute(f"PRAGMA table_info({table_name})")
+            columns = cur.fetchall()
+            # extract the column names from the query result
+            column_names = [column[1] for column in columns]
+            # create a SQL query to select all the columns from the table
+            sql_query = f"SELECT * FROM {table_name}"
+            # if rows are given, add a WHERE clause to filter by row values
+            if rows is not None:
+                # create a list of conditions for each row value
+                conditions = [f"{column_names[i]} = '{rows[i]}'" for i in range(len(rows))]
+                # join the conditions with AND operator
+                where_clause = " AND ".join(conditions)
+                # add the WHERE clause to the SQL query
+                sql_query += f" WHERE {where_clause}"
+            # execute the SQL query and fetch the data as a pandas dataframe
+            df = pd.read_sql_query(sql_query, conn)
+            # display the dataframe
+            print(df)
+            # close the connection
+            conn.close()
+            # return None
+            return None
+
+        # if columns are given, show only those columns in the table
+        else:
+            # create a SQL query to select only those columns from the table
+            sql_query = f"SELECT {', '.join(columns)} FROM {table_name}"
+            # if rows are given, add a WHERE clause to filter by row values
+            if rows is not None:
+                # create a list of conditions for each row value
+                conditions = [f"{columns[i]} = '{rows[i]}'" for i in range(len(rows))]
+                # join the conditions with AND operator
+                where_clause = " AND ".join(conditions)
+                # add the WHERE clause to the SQL query
+                sql_query += f" WHERE {where_clause}"
+            # execute the SQL query and fetch the data as a pandas dataframe
+            df = pd.read_sql_query(sql_query, conn)
+            # display the dataframe
+            print(df)
+            # close the connection
+            conn.close()
+            # return None
+            return None
+
 
 def count_down(time_in_sec):
     '''
@@ -1818,35 +1911,33 @@ def count_down(time_in_sec):
 
 
 
-def store_user_data():
-    try:
-        store_user_data_to_database(get_friends_activity_json())
-        # print_the_data_from_the_database()
-        print_last_played_songs(1)
-        # schedule the next call after 30 seconds
-        Timer(30, store_user_data).start()
-    except Exception as e:
-        print(e)
-        # schedule the next call after 30 seconds
-        Timer(30, store_user_data).start()
+# def store_user_data():
+#     try:
+#         store_user_data_to_database(get_friends_activity_json())
+#         # print_the_data_from_the_database()
+#         print_last_played_songs(1)
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
+#     except Exception as e:
+#         print(e)
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
 
-def store_streaming_data():
-    try:
-        store_my_streaming_data_to_database(database_name='MyStreamingHistory.db')
-        # schedule the next call after 8 minutes
-        Timer(480, store_streaming_data).start()
-    except Exception as e:
-        print(e)
-        # schedule the next call after 8 seconds
-        Timer(8, store_streaming_data).start()
+# def store_streaming_data():
+#     try:
+#         store_my_streaming_data_to_database(database_name='MyStreamingHistory.db')
+#         # schedule the next call after 8 minutes
+#         Timer(480, store_streaming_data).start()
+#     except Exception as e:
+#         print(e)
+#         # schedule the next call after 8 seconds
+#         Timer(8, store_streaming_data).start()
 
 # if __name__ == "__main__":
 #     # start the first thread
 #     Thread(target=store_user_data).start()
 #     # start the second thread
 #     Thread(target=store_streaming_data).start()
-from threading import Thread, Timer
-import time
 
 # def count_down(time_in_sec):
 #     '''
@@ -1894,6 +1985,60 @@ import time
 # import time
 # import sys
 
+# def count_down(time_in_sec):
+#     '''
+#     This function takes a time in seconds as an argument and prints a countdown
+#     '''
+#     # loop through the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         # print the time in seconds
+#         print(i)
+#         # wait one second
+#         time.sleep(1)
+
+# def store_user_data():
+#     try:
+#         store_user_data_to_database(get_friends_activity_json())
+#         # print_the_data_from_the_database()
+#         print_last_played_songs(1)
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
+#     except Exception as e:
+#         print(e)
+#         # print a message indicating retrying
+#         print("Retrying store_user_data in 30 seconds...")
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
+
+# def store_streaming_data():
+#     try:
+#         store_streaming_data_to_database(streaming_activity_json, database_name='MyStreamingHistory.db')
+#         # schedule the next call after 8 minutes
+#         Timer(480, store_streaming_data).start()
+#     except Exception as e:
+#         print(e)
+#         # print a message indicating retrying
+#         print("Retrying store_streaming_data in 8 seconds...")
+#         # schedule the next call after 8 seconds
+#         Timer(8, store_streaming_data).start()
+
+# if __name__ == "__main__":
+#     try:
+#         # start the first thread as daemon
+#         Thread(target=store_user_data, daemon=True).start()
+#         # start the second thread as daemon
+#         Thread(target=store_streaming_data, daemon=True).start()
+#         # keep the main thread alive until Ctrl + C is pressed
+#         while True:
+#             time.sleep(1)
+#     except KeyboardInterrupt:
+#         # print a message indicating exit
+#         print("Exiting...")
+#     finally:
+#         # exit the program
+#         sys.exit(0)
+
+
 def count_down(time_in_sec):
     '''
     This function takes a time in seconds as an argument and prints a countdown
@@ -1921,8 +2066,9 @@ def store_user_data():
 
 def store_streaming_data():
     try:
-        store_streaming_data_to_database(streaming_activity_json, database_name='MyStreamingHistory.db')
+        store_my_streaming_data_to_database(database_name='MyStreamingHistory.db')
         # schedule the next call after 8 minutes
+        print_the_data_from_the_database()
         Timer(480, store_streaming_data).start()
     except Exception as e:
         print(e)
@@ -1931,18 +2077,20 @@ def store_streaming_data():
         # schedule the next call after 8 seconds
         Timer(8, store_streaming_data).start()
 
+# if __name__ == "__main__":
+#     # start the first thread as daemon
+#     Thread(target=store_user_data, daemon=True).start()
+#     # start the second thread as daemon
+#     Thread(target=store_streaming_data, daemon=True).start()
+#     # keep the main thread alive until Ctrl + C is pressed
+#     user_input = None # a variable to store the user input
+#     try:
+#         # read from the standard input
+#         user_input = input()
+#     except EOFError:
+#         # display the database if Ctrl + D is pressed
+#         # display_data_from_database()
+#         print_my_database()
+
 if __name__ == "__main__":
-    try:
-        # start the first thread as daemon
-        Thread(target=store_user_data, daemon=True).start()
-        # start the second thread as daemon
-        Thread(target=store_streaming_data, daemon=True).start()
-        # keep the main thread alive until Ctrl + C is pressed
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        # print a message indicating exit
-        print("Exiting...")
-    finally:
-        # exit the program
-        sys.exit(0)
+    display_data_from_database()

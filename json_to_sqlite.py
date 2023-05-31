@@ -461,3 +461,40 @@ if __name__ == "__main__":
         except:
             print("Something went wrong")
             count_down(30)
+
+
+if __name__ == "__main__":
+    while True:
+        try:
+            store_user_data_to_database(get_friends_activity_json())
+            # print_the_data_from_the_database()
+            print_last_played_songs(1)
+            count_down(30)
+        # print the error message if the program fails
+        except Exception as e:
+            print(e)
+            count_down(30)
+        except KeyboardInterrupt:
+            break
+        except:
+            print("Something went wrong")
+            count_down(30)
+
+
+# from concurrent.futures import ProcessPoolExecutor
+
+# def f(x):
+#     return x*x
+
+# if __name__ == '__main__':
+#     with ProcessPoolExecutor(max_workers=4) as executor:
+#         results = executor.map(f, [1, 2, 3, 4])
+#         for result in results:
+#             print(result)
+
+
+# import concurrent.futures
+# import time
+
+# def do_something(seconds):
+#     print(f"Sleeping {seconds} second(s)...")
