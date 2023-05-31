@@ -1506,38 +1506,10 @@ def time_variation(timestamp):
     return time_since_played
 
 
-def count_down(time_in_sec):
-    '''
-    This function takes a time in seconds as an argument and prints a countdown
-    '''
-    # loop through the time in seconds
-    for i in range(time_in_sec, 0, -1):
-        # print the time in seconds
-        print(i)
-        # wait one second
-        time.sleep(1)
-
-if __name__ == "__main__":
-    while True:
-        try:
-            store_user_data_to_database(get_friends_activity_json())
-            # print_the_data_from_the_database()
-            print_last_played_songs(1)
-            count_down(30)
-        # print the error message if the program fails
-        except Exception as e:
-            print(e)
-            count_down(30)
-        except KeyboardInterrupt:
-            break
-        except:
-            print("Something went wrong")
-            count_down(30)
-
 
 """My streaming history"""
 # define a function to store streaming activity data to a database
-def store_streaming_data_to_database(streaming_activity_json, database_name='MyStreamingHistory.db'):
+def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
     '''
     This function is divided into 2 parts:
     - Create the database and tables if they do not exist
@@ -1594,7 +1566,7 @@ def store_streaming_data_to_database(streaming_activity_json, database_name='MyS
         FOREIGN KEY (track_id) REFERENCES tracks(track_id)
         )
     ''')
-
+    streaming_activity_json = parse_streaming_history()
     # loop through the JSON data of streaming activity
     for data in streaming_activity_json:
         # get the album data from the JSON object
@@ -1772,126 +1744,205 @@ def print_database(database_name='MyStreamingHistory.db', table_name=None, limit
     # close the connection
     conn.close()
 
-"""
-write a better function
-"""
-# write a funciton to store friends activity to a csv file
-# def store_friends_activity():
-#     # times got the same song in a row
-#     same_song = 0
-#     # this is where all the tracks from the selected user will be stored
-#     playlist_id = "5XV9floz2zzeWiAcduWBkc"
+
+def count_down(time_in_sec):
+    '''
+    This function takes a time in seconds as an argument and prints a countdown
+    '''
+    # loop through the time in seconds
+    for i in range(time_in_sec, 0, -1):
+        # print the time in seconds
+        print(i)
+        # wait one second
+        time.sleep(1)
+
+
+# if __name__ == "__main__":
 #     while True:
-#         """ ATTENTION NEED TO UPDATED store to sql database instead of csv file"""
-#         # create the files if they don't exist
-#         friend_activity_csv = create_file('friend_activity.csv')
-#         friends_activity_csv = create_file('friends_activity.csv')
-
-#         # get the friends activity json
-#         # try again and again until we get the json response from the node.js script
-#         # friends_activity_json = get_friends_activity_json()
-#         store_user_data_to_database()
-
-#         # get the current time, will help to know when the user was listening to the song
-#         staring_time = datetime.datetime.now()
-        
-#         # yeah I can use the only one but not sure if it well break the code so I am just gonna leave it
-#         current_time = datetime.datetime.now()
-
-#         # try and except if there's a key error
 #         try:
-#             # iterate through the friends activity
-#             for friend in friends_activity_json['friends']:    
-#                 # check if the user uri is the same as the user uri
-#                 if friend['user']['uri'] in user_id_to_user_uri():        # only for some selected users
-#                     print('user uri', friend['user']['name'])
-#                     # the id of the particular track the particular user is listening to
-#                     track_id = friend['track']['uri'].split(":")[-1]
-#                     # check if the track is same as the previous track don't add it to the csv file
+#             store_user_data_to_database(get_friends_activity_json())
+#             # print_the_data_from_the_database()
+#             print_last_played_songs(1)
+#             count_down(30)
+#         # print the error message if the program fails
+#         except Exception as e:
+#             print(e)
+#             count_down(30)
+#         except KeyboardInterrupt:
+#             break
+#         except:
+#             print("Something went wrong")
+#             count_down(30)
 
-#                     """ This will run if the csv file is empty or if the track is not the same as the previous track"""
-#                     try:
-#                         """            continue trying if listening to the same song                             
-#                         """
-#                         # this means the person is listening to the same song as the previous song
-#                         if friend['track']['uri'] == friend_activity_csv['track_uri'].iloc[-1]:
-#                             # print the song name
-#                             print('listning to the same song',friend['track']['name'])
-#                             same_song += 1
-#                             print("Got the same song", same_song, "times")
-#                             continue
-#                     except IndexError:
-#                         pass
-#                     # write the data to the csv file
-#                     with open('friend_activity.csv', 'a', newline='') as file:
-#                         writer = csv.writer(file)
-#                         writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
-#                         print('adding to the database', friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time)
-#                         same_song = 0
-
-#                     # get all the playlist tracks from the playlist
-#                     the_playlist_tracks = get_playlist_tracks_retry(playlist_id)
-#                     song_id = friend['track']['uri'].split(":")[-1]
-#                     '''add the track to the playlist if it is not already in the playlist '''
-#                     # print(song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks])
-#                     print(song_id)
-#                     # if the track is not in the playlist add it to the playlist
-#                     if song_id not in [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks]:
-#                         # add the track to the playlist
-#                         print(song_id)
-#                         # print song name
-#                         print("adding", friend['track']['name'], "to the playlist song_id:", song_id)
-#                         # sp.user_playlist_add_tracks(username, playlist_id, [song_id])
-#                         # keep trying to add the track to the playlist
-#                         retring = 0
-#                         while True:
-#                             try:
-#                                 playlist_modify_private.user_playlist_add_tracks(username, playlist_id, [song_id])
-#                                 break
-#                             except:
-#                                 print("error adding the track to the playlist")
-#                                 if retring < 2:
-#                                     time.sleep(10)
-#                                 elif retring < 4:
-#                                     time.sleep(20)
-#                                 else:
-#                                     time.sleep(30)
-                        
-#                     # if the track is already in the playlist move it to the bottom of the playlist, means the track has been played
-#                     else:
-#                         # get the index of the track
-#                         track_index = [i['track']['uri'].split(":")[-1] for i in the_playlist_tracks].index(song_id)
-#                         playlist_modify_private.user_playlist_reorder_tracks(username, playlist_id, track_index, len(the_playlist_tracks), range_length=1)
+from threading import Thread, Timer
+import time
 
 
-#                     """find a way to play the track"""
+from typing import Callable, Generator
 
-#             """    The following code is needed to be updated, so that It would store the data to a json database not in a json file"""
-#             # run this code every 30 minutes using start_time and reset the start_time
-#             if (datetime.datetime.now() - staring_time).seconds > 1800:
-#                 print('30 hour is over and updating the friends_activity.csv file')
-#                 """ I wan't able to update only if new data is added to the csv file so I am just updating the csv file every 30 minutes"""
-#                 # get the friends activity json
-#                 for friend in friends_activity_json['friends']:
-#                     with open('friends_activity.csv', 'a', newline='') as file:
-#                         writer = csv.writer(file)
-#                         writer.writerow([friend['user']['uri'], friend['track']['uri'], friend['timestamp'], current_time])
-#                 # reset the staring time
-#                 staring_time = datetime.datetime.now()
+def count_down(time_in_sec: int, callback: Callable = None) -> Generator[int, None, None]:
+    '''
+    This function takes a time in seconds as an argument and yields a countdown.
 
-#             # wait for 30 seconds
-#             sec = 30
-#             if same_song > 10: sec = 3*60
-#             elif same_song > 30*2: sec = 5*60
-#             # if listening to the same song for more than 30 minutes then wait for 5 minutes
-#             for i in range(sec):
-#                 print('searching for friends activity in', sec-i, 'sec')
-#                 time.sleep(1)
-#         except KeyError:
-#             print('KeyError')
-#             time.sleep(30)
+    Optionally, it can execute a callback function after each countdown value.
+
+    >>> list(count_down(3))
+    [3, 2, 1]
+    >>> list(count_down(3, print))
+    3
+    2
+    1
+    [None, None, None]
+    '''
+
+    # yield the time in seconds
+    for i in range(time_in_sec, 0, -1):
+        yield i
+        # execute the callback if given
+        if callback:
+            callback()
+        # wait one second
+        time.sleep(1)
 
 
+def count_down(time_in_sec):
+    '''
+    This function takes a time in seconds as an argument and prints a countdown
+    '''
+    # loop through the time in seconds
+    for i in range(time_in_sec, 0, -1):
+        # print the time in seconds
+        print(i)
+        # wait one second
+        time.sleep(1)
+
+
+
+def store_user_data():
+    try:
+        store_user_data_to_database(get_friends_activity_json())
+        # print_the_data_from_the_database()
+        print_last_played_songs(1)
+        # schedule the next call after 30 seconds
+        Timer(30, store_user_data).start()
+    except Exception as e:
+        print(e)
+        # schedule the next call after 30 seconds
+        Timer(30, store_user_data).start()
+
+def store_streaming_data():
+    try:
+        store_my_streaming_data_to_database(database_name='MyStreamingHistory.db')
+        # schedule the next call after 8 minutes
+        Timer(480, store_streaming_data).start()
+    except Exception as e:
+        print(e)
+        # schedule the next call after 8 seconds
+        Timer(8, store_streaming_data).start()
+
+# if __name__ == "__main__":
+#     # start the first thread
+#     Thread(target=store_user_data).start()
+#     # start the second thread
+#     Thread(target=store_streaming_data).start()
+from threading import Thread, Timer
+import time
+
+# def count_down(time_in_sec):
+#     '''
+#     This function takes a time in seconds as an argument and prints a countdown
+#     '''
+#     # loop through the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         # print the time in seconds
+#         print(i)
+#         # wait one second
+#         time.sleep(1)
+
+# def store_user_data():
+#     try:
+#         store_user_data_to_database(get_friends_activity_json())
+#         # print_the_data_from_the_database()
+#         print_last_played_songs(1)
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
+#     except Exception as e:
+#         print(e)
+#         # print a message indicating retrying
+#         print("Retrying store_user_data in 30 seconds...")
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
+
+# def store_streaming_data():
+#     try:
+#         store_my_streaming_data_to_database(database_name='MyStreamingHistory.db')
+#         # schedule the next call after 8 minutes
+#         Timer(480, store_streaming_data).start()
+#     except Exception as e:
+#         print(e)
+#         # print a message indicating retrying
+#         print("Retrying store_streaming_data in 8 seconds...")
+#         # schedule the next call after 8 seconds
+#         Timer(8, store_streaming_data).start()
+
+# if __name__ == "__main__":
+#     # start the first thread
+#     Thread(target=store_user_data).start()
+#     # start the second thread
+#     Thread(target=store_streaming_data).start()
+# from threading import Thread, Timer
+# import time
+# import sys
+
+def count_down(time_in_sec):
+    '''
+    This function takes a time in seconds as an argument and prints a countdown
+    '''
+    # loop through the time in seconds
+    for i in range(time_in_sec, 0, -1):
+        # print the time in seconds
+        print(i)
+        # wait one second
+        time.sleep(1)
+
+def store_user_data():
+    try:
+        store_user_data_to_database(get_friends_activity_json())
+        # print_the_data_from_the_database()
+        print_last_played_songs(1)
+        # schedule the next call after 30 seconds
+        Timer(30, store_user_data).start()
+    except Exception as e:
+        print(e)
+        # print a message indicating retrying
+        print("Retrying store_user_data in 30 seconds...")
+        # schedule the next call after 30 seconds
+        Timer(30, store_user_data).start()
+
+def store_streaming_data():
+    try:
+        store_streaming_data_to_database(streaming_activity_json, database_name='MyStreamingHistory.db')
+        # schedule the next call after 8 minutes
+        Timer(480, store_streaming_data).start()
+    except Exception as e:
+        print(e)
+        # print a message indicating retrying
+        print("Retrying store_streaming_data in 8 seconds...")
+        # schedule the next call after 8 seconds
+        Timer(8, store_streaming_data).start()
 
 if __name__ == "__main__":
-    store_friends_activity()
+    try:
+        # start the first thread as daemon
+        Thread(target=store_user_data, daemon=True).start()
+        # start the second thread as daemon
+        Thread(target=store_streaming_data, daemon=True).start()
+        # keep the main thread alive until Ctrl + C is pressed
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        # print a message indicating exit
+        print("Exiting...")
+    finally:
+        # exit the program
+        sys.exit(0)
