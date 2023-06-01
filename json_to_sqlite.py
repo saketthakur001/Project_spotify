@@ -65,7 +65,7 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         user_id INTEGER PRIMARY KEY,
         user_uri TEXT NOT NULL,
         user_name TEXT NOT NULL,
-        user_image_url TEXT NOT NULL
+        user_image_url TEXT 
     )
     ''')
 
@@ -135,7 +135,12 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         # print(data)
         user_url = data['user']['uri']
         user_name = data['user']['name']
-        user_image_url = data['user']['imageUrl']
+        try:
+            user_image_url = data['user']['imageUrl']
+        except:
+            # print the user name
+            print(user_name)
+            user_image_url = "no image"
 
         # check if the user already exists in the users table by querying the user_url column
         cur.execute("SELECT user_id FROM users WHERE user_url = ?", (user_url,))
@@ -472,7 +477,7 @@ if __name__ == "__main__":
             count_down(30)
         # print the error message if the program fails
         except Exception as e:
-            print(e)
+            print("error:",e)
             count_down(30)
         except KeyboardInterrupt:
             break

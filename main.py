@@ -1662,7 +1662,7 @@ def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
     conn.close()
 
 # define a function that prints the database with some parameters
-def print_my_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None):
+def print_my_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None, print_full_preview_url=False, max_lenght_each_values=50):
     '''
     This function prints the database with some parameters
     - database_name: the name of the database file to connect to
@@ -1709,6 +1709,15 @@ def print_my_database(database_name='MyStreamingHistory.db', table_name=None, li
 
             # print the rows as values
             for row in rows:
+                # if print_full_preview_url is False, replace the preview_url column with a shorter version
+                if not print_full_preview_url and 'preview_url' in column_names:
+                    # get the index of the preview_url column
+                    index = column_names.index('preview_url')
+
+                    # replace the preview_url column with a shorter version
+                    row = row[:index] + ('...',) + row[index+1:]
+                # don't print more than 50 each row
+                row = [str(value)[:50] for value in row]
                 print(*row, sep='\t')
 
             # print a blank line after each table
@@ -1748,94 +1757,94 @@ def print_my_database(database_name='MyStreamingHistory.db', table_name=None, li
     # close the connection
     conn.close()
 
-def display_data_from_database(database_name='MyStreamingHistory.db', table_name=None, columns=None, rows=None):
-    '''
-    This function is used to display the data from a given database and table.
-    It can also filter the data by specifying the columns and rows to show.
-    If no table name is given, it will show all the tables in the database.
-    If no columns are given, it will show all the columns in the table.
-    If no rows are given, it will show all the rows in the table.
+# def display_data_from_database(database_name='MyStreamingHistory.db', table_name=None, columns=None, rows=None):
+#     '''
+#     This function is used to display the data from a given database and table.
+#     It can also filter the data by specifying the columns and rows to show.
+#     If no table name is given, it will show all the tables in the database.
+#     If no columns are given, it will show all the columns in the table.
+#     If no rows are given, it will show all the rows in the table.
 
-    Parameters:
-    - database_name: The name of the database file to connect to.
-    - table_name: The name of the table to display the data from. If None, all tables in the database will be shown.
-    - columns: A list of column names to display. If None, all columns will be shown.
-    - rows: A list of values to filter the data rows. If None, no row filtering will be applied.
+#     Parameters:
+#     - database_name: The name of the database file to connect to.
+#     - table_name: The name of the table to display the data from. If None, all tables in the database will be shown.
+#     - columns: A list of column names to display. If None, all columns will be shown.
+#     - rows: A list of values to filter the data rows. If None, no row filtering will be applied.
 
-    Returns:
-    - None
-    '''
+#     Returns:
+#     - None
+#     '''
 
-    # import pandas and sqlite3 modules
-    import pandas as pd
-    import sqlite3
+#     # import pandas and sqlite3 modules
+#     import pandas as pd
+#     import sqlite3
 
-    # connect to the database with the given name
-    conn = sqlite3.connect(database_name)
-    cur = conn.cursor()
+#     # connect to the database with the given name
+#     conn = sqlite3.connect(database_name)
+#     cur = conn.cursor()
 
-    # if no table name is given, show all the tables in the database
-    if table_name is None:
-        # query the sqlite_master table to get the names of all the tables
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-        tables = cur.fetchall()
-        # loop through the tables and display their names
-        print(f"Tables in {database_name}:")
-        for table in tables:
-            print(table[0])
-        # close the connection
-        conn.close()
-        # return None
-        return None
+#     # if no table name is given, show all the tables in the database
+#     if table_name is None:
+#         # query the sqlite_master table to get the names of all the tables
+#         cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+#         tables = cur.fetchall()
+#         # loop through the tables and display their names
+#         print(f"Tables in {database_name}:")
+#         for table in tables:
+#             print(table[0])
+#         # close the connection
+#         conn.close()
+#         # return None
+#         return None
 
-    # if a table name is given, show the data from that table
-    else:
-        # if no columns are given, show all the columns in the table
-        if columns is None:
-            # query the PRAGMA table_info to get the names of all the columns
-            cur.execute(f"PRAGMA table_info({table_name})")
-            columns = cur.fetchall()
-            # extract the column names from the query result
-            column_names = [column[1] for column in columns]
-            # create a SQL query to select all the columns from the table
-            sql_query = f"SELECT * FROM {table_name}"
-            # if rows are given, add a WHERE clause to filter by row values
-            if rows is not None:
-                # create a list of conditions for each row value
-                conditions = [f"{column_names[i]} = '{rows[i]}'" for i in range(len(rows))]
-                # join the conditions with AND operator
-                where_clause = " AND ".join(conditions)
-                # add the WHERE clause to the SQL query
-                sql_query += f" WHERE {where_clause}"
-            # execute the SQL query and fetch the data as a pandas dataframe
-            df = pd.read_sql_query(sql_query, conn)
-            # display the dataframe
-            print(df)
-            # close the connection
-            conn.close()
-            # return None
-            return None
+#     # if a table name is given, show the data from that table
+#     else:
+#         # if no columns are given, show all the columns in the table
+#         if columns is None:
+#             # query the PRAGMA table_info to get the names of all the columns
+#             cur.execute(f"PRAGMA table_info({table_name})")
+#             columns = cur.fetchall()
+#             # extract the column names from the query result
+#             column_names = [column[1] for column in columns]
+#             # create a SQL query to select all the columns from the table
+#             sql_query = f"SELECT * FROM {table_name}"
+#             # if rows are given, add a WHERE clause to filter by row values
+#             if rows is not None:
+#                 # create a list of conditions for each row value
+#                 conditions = [f"{column_names[i]} = '{rows[i]}'" for i in range(len(rows))]
+#                 # join the conditions with AND operator
+#                 where_clause = " AND ".join(conditions)
+#                 # add the WHERE clause to the SQL query
+#                 sql_query += f" WHERE {where_clause}"
+#             # execute the SQL query and fetch the data as a pandas dataframe
+#             df = pd.read_sql_query(sql_query, conn)
+#             # display the dataframe
+#             print(df)
+#             # close the connection
+#             conn.close()
+#             # return None
+#             return None
 
-        # if columns are given, show only those columns in the table
-        else:
-            # create a SQL query to select only those columns from the table
-            sql_query = f"SELECT {', '.join(columns)} FROM {table_name}"
-            # if rows are given, add a WHERE clause to filter by row values
-            if rows is not None:
-                # create a list of conditions for each row value
-                conditions = [f"{columns[i]} = '{rows[i]}'" for i in range(len(rows))]
-                # join the conditions with AND operator
-                where_clause = " AND ".join(conditions)
-                # add the WHERE clause to the SQL query
-                sql_query += f" WHERE {where_clause}"
-            # execute the SQL query and fetch the data as a pandas dataframe
-            df = pd.read_sql_query(sql_query, conn)
-            # display the dataframe
-            print(df)
-            # close the connection
-            conn.close()
-            # return None
-            return None
+#         # if columns are given, show only those columns in the table
+#         else:
+#             # create a SQL query to select only those columns from the table
+#             sql_query = f"SELECT {', '.join(columns)} FROM {table_name}"
+#             # if rows are given, add a WHERE clause to filter by row values
+#             if rows is not None:
+#                 # create a list of conditions for each row value
+#                 conditions = [f"{columns[i]} = '{rows[i]}'" for i in range(len(rows))]
+#                 # join the conditions with AND operator
+#                 where_clause = " AND ".join(conditions)
+#                 # add the WHERE clause to the SQL query
+#                 sql_query += f" WHERE {where_clause}"
+#             # execute the SQL query and fetch the data as a pandas dataframe
+#             df = pd.read_sql_query(sql_query, conn)
+#             # display the dataframe
+#             print(df)
+#             # close the connection
+#             conn.close()
+#             # return None
+#             return None
 
 
 def count_down(time_in_sec):
@@ -1961,8 +1970,9 @@ def store_streaming_data():
 #         user_input = input()
 #     except EOFError:
 #         # display the database if Ctrl + D is pressed
-#         # display_data_from_database()
-#         print_my_database()
+#         display_data_from_database()
+#         # print_my_database()
 
 if __name__ == "__main__":
     display_data_from_database()
+    print_my_database()
