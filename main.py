@@ -1314,44 +1314,44 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
             cur.execute("INSERT INTO streamings (user_id, track_id, timestamp) VALUES (?, ?, ?)", (user_id, track_id, timestamp))
             conn.commit()
 
-def print_the_data_from_the_database():
-    '''
-    This function prints:
-    - all the data from the users table
-    - all the data from the albums table
-    - all the data from the artists table
-    - all the data from the tracks table
-    '''
+# def print_the_data_from_the_database():
+#     '''
+#     This function prints:
+#     - all the data from the users table
+#     - all the data from the albums table
+#     - all the data from the artists table
+#     - all the data from the tracks table
+#     '''
 
-    #connect to the database
-    conn = sqlite3.connect('friends_activity.db')
-    cur = conn.cursor()
+#     #connect to the database
+#     conn = sqlite3.connect('friends_activity.db')
+#     cur = conn.cursor()
 
-    # define a function that takes a table name as an argument and prints all the data from that table
-    def print_table_data(table_name):
-        # select all the data from the table
-        cur.execute(f"SELECT * FROM {table_name}")
-        data = cur.fetchall()
+#     # define a function that takes a table name as an argument and prints all the data from that table
+#     def print_table_data(table_name):
+#         # select all the data from the table
+#         cur.execute(f"SELECT * FROM {table_name}")
+#         data = cur.fetchall()
 
-        # print the table name and the data
-        # print(f"{table_name.capitalize()}:")
-        for row in data:
-            print(row)
-            # break
+#         # print the table name and the data
+#         # print(f"{table_name.capitalize()}:")
+#         for row in data:
+#             print(row)
+#             # break
 
-    # call the function for each table
-    print("user_id, user_uri, user_name, user_image_url")
-    print_table_data("users")
-    print("album_id, album_uri, album_name")
-    print_table_data("albums")
-    print("artist_id, artist_uri, artist_name")
-    print_table_data("artists")
-    print("track_id, track_uri, track_name, track_image_url, album_id, artist_id")
-    print_table_data("tracks")
-    print("context_id, context_uri, context_name, context_index")
-    print_table_data("context")
-    print("streaming_id, user_id, track_id, timestamp")
-    print_table_data("streamings")
+#     # call the function for each table
+#     print("user_id, user_uri, user_name, user_image_url")
+#     print_table_data("users")
+#     print("album_id, album_uri, album_name")
+#     print_table_data("albums")
+#     print("artist_id, artist_uri, artist_name")
+#     print_table_data("artists")
+#     print("track_id, track_uri, track_name, track_image_url, album_id, artist_id")
+#     print_table_data("tracks")
+#     print("context_id, context_uri, context_name, context_index")
+#     print_table_data("context")
+#     print("streaming_id, user_id, track_id, timestamp")
+#     print_table_data("streamings")
 
 # define a function that takes a user_id as an argument and returns all the details about that user from the database
 def get_user_details(user_id):
@@ -1661,101 +1661,258 @@ def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
     # close the connection
     conn.close()
 
-# define a function that prints the database with some parameters
-def print_my_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None, print_full_preview_url=False, max_lenght_each_values=50):
-    '''
-    This function prints the database with some parameters
-    - database_name: the name of the database file to connect to
-    - table_name: the name of the table to print, if None, print all tables
-    - limit: the number of rows to print, if None, print all rows
-    - order_by: the column name to sort the rows by, if None, use the default order
-    '''
 
-    # connect to the database with the given name
-    conn = sqlite3.connect(database_name)
-    cur = conn.cursor()
+# define a class for streaming analysis
+class MyStreamingAnalysis:
+    # define the constructor method that takes the database name as an input
+    def __init__(self, database_name="MyStreamingHistory.db"):
+        # store the database name as an attribute
+        self.database_name = database_name
+        # try to connect to the database and create a cursor object
+        try:
+            self.conn = sqlite3.connect(self.database_name)
+            self.cur = self.conn.cursor()
+            print(f"Connected to {self.database_name} successfully.")
+        except sqlite3.Error as e:
+            print(f"Error connecting to {self.database_name}: {e}")
 
-    # get the list of table names from the database
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    table_names = [row[0] for row in cur.fetchall()]
+    # define a method that returns the most played artist name and streamings
+    def get_most_played_artist(self, start_date=None, end_date=None, limit=1):
+        # construct the SQL query to select the artist name and count the number of streamings for each artist
+        sql = """SELECT a.artist_name, a.artist_uri, COUNT(s.track_id) AS streamings
+                 FROM artists a
+                 JOIN tracks t ON a.artist_id = t.artist_id -- join the artists and tracks tables on artist_id
+                 JOIN streamings s ON t.track_id = s.track_id -- join the tracks and streamings tables on track_id
+              """
 
-    # if table_name is None or not valid, print all tables
-    if table_name is None or table_name not in table_names:
-        for table in table_names:
-            # print the table name
-            print(f"Table: {table}")
+        # if start_date and end_date are not None, add a WHERE clause to filter by played_at
+        if start_date is not None and end_date is not None:
+            sql += f" WHERE s.played_at BETWEEN {start_date} AND {end_date}"
 
-            # get the column names from the table
-            cur.execute(f"PRAGMA table_info({table})")
-            column_names = [row[1] for row in cur.fetchall()]
+        # group by artist name and artist id
+        sql += " GROUP BY a.artist_name, a.artist_id"
 
-            # print the column names as headers
-            print(*column_names, sep='\t')
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
 
-            # construct the SQL query to select rows from the table
-            sql = f"SELECT * FROM {table}"
+        # limit the result to the given limit value
+        sql += f" LIMIT {limit}"
 
-            # if order_by is not None and valid, add it to the query
-            if order_by is not None and order_by in column_names:
-                sql += f" ORDER BY {order_by}"
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
 
-            # if limit is not None and positive, add it to the query
-            if limit is not None and limit > 0:
-                sql += f" LIMIT {limit}"
+    # define a method that returns the most played song name and streamings
+    def get_most_played_song(self, start_date=None, end_date=None, limit=1):
+        # construct the SQL query to select the song name and count the number of streamings for each song
+        sql = """SELECT t.track_name, t.track_uri, COUNT(s.track_id) AS streamings
+                 FROM tracks t
+                 JOIN streamings s ON t.track_id = s.track_id -- join the tracks and streamings tables on track_id
+              """
 
-            # execute the query and fetch the rows
-            cur.execute(sql)
-            rows = cur.fetchall()
+        # if start_date and end_date are not None, add a WHERE clause to filter by played_at
+        if start_date is not None and end_date is not None:
+            sql += f" WHERE s.played_at BETWEEN {start_date} AND {end_date}"
 
-            # print the rows as values
-            for row in rows:
-                # if print_full_preview_url is False, replace the preview_url column with a shorter version
-                if not print_full_preview_url and 'preview_url' in column_names:
-                    # get the index of the preview_url column
-                    index = column_names.index('preview_url')
+        # group by song name and song id
+        sql += " GROUP BY t.track_name, t.track_id"
 
-                    # replace the preview_url column with a shorter version
-                    row = row[:index] + ('...',) + row[index+1:]
-                # don't print more than 50 each row
-                row = [str(value)[:50] for value in row]
-                print(*row, sep='\t')
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
 
-            # print a blank line after each table
-            print()
+        # limit the result to the given limit value
+        sql += f" LIMIT {limit}"
 
-    else:
-        # if table_name is valid, print only that table
-        # print the table name
-        print(f"Table: {table_name}")
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
 
-        # get the column names from the table
-        cur.execute(f"PRAGMA table_info({table_name})")
-        column_names = [row[1] for row in cur.fetchall()]
+    # define a method that returns the most played album name and streamings
+    def get_most_played_album(self, start_date=None, end_date=None, limit=1):
+        # construct the SQL query to select the album name and count the number of streamings for each album
+        sql = """SELECT al.album_name, al.album_id, COUNT(s.track_id) AS streamings
+                 FROM albums al
+                 JOIN tracks t ON al.album_id = t.album_id -- join the albums and tracks tables on album_id
+                 JOIN streamings s ON t.track_id = s.track_id -- join the tracks and streamings tables on track_id
+              """
 
-        # print the column names as headers
-        print(*column_names, sep='\t')
+        # if start_date and end_date are not None, add a WHERE clause to filter by played_at
+        if start_date is not None and end_date is not None:
+            sql += f" WHERE s.played_at BETWEEN {start_date} AND {end_date}"
 
-        # construct the SQL query to select rows from the table
-        sql = f"SELECT * FROM {table_name}"
+        # group by album name and album id
+        sql += " GROUP BY al.album_name, al.album_id"
 
-        # if order_by is not None and valid, add it to the query
-        if order_by is not None and order_by in column_names:
-            sql += f" ORDER BY {order_by}"
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
 
-        # if limit is not None and positive, add it to the query
-        if limit is not None and limit > 0:
-            sql += f" LIMIT {limit}"
+        # limit the result to the given limit value
+        sql += f" LIMIT {limit}"
 
-        # execute the query and fetch the rows
-        cur.execute(sql)
-        rows = cur.fetchall()
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
 
-        # print the rows as values
-        for row in rows:
-            print(*row, sep='\t')
+    '''ATTENTION add GENRE table to the database'''
+# # define a method that returns the most played genre name and streamings (assuming there is a table for genres)
+    # def get_most_played_genre(self, start_date=None, end_date=None, limit=1):
+    #     # construct the SQL query to select the genre name and count the number of streamings for each genre
+    #     sql = """SELECT g.genre_name, g.genre_id, COUNT(s.track_id) AS streamings
+    #              FROM genres g
+    #              JOIN tracks t ON g.genre_id = t.genre_id -- join the genres and tracks tables on genre_id
+    #              JOIN streamings s ON t.track_id = s.track_id -- join the tracks and streamings tables on track_id
+    #           """
 
-    # close the connection
-    conn.close()
+    #     # if start_date and end_date are not None, add a WHERE clause to filter by played_at
+    #     if start_date is not None and end_date is not None:
+    #         sql += f" WHERE s.played_at BETWEEN {start_date} AND {end_date}"
+
+    #     # group by genre name and genre id
+    #     sql += " GROUP BY g.genre_name, g.genre_id"
+
+    #     # order by streamings in descending order
+    #     sql += " ORDER BY streamings DESC"
+
+    #     # limit the result to the given limit value
+    #     sql += f" LIMIT {limit}"
+
+    #     # try to execute the query and fetch the results
+    #     try:
+    #         self.cur.execute(sql)
+    #         results = self.cur.fetchall()
+    #         # return the results as a list of tuples
+    #         return results
+    #     except sqlite3.Error as e:
+    #         print(f"Error executing query: {e}")
+
+    # # define a method that returns a pandas dataframe with streaming data
+    # def get_streaming_data(self):
+    #     # construct the SQL query to select all the columns from the streaming data
+    #     sql = """SELECT *
+    #              FROM streaming_data
+    #           """
+    #     # try to execute the query and fetch the results
+    #     try:
+    #         self.cur.execute(sql)
+    #         results = self.cur.fetchall()
+    #         column_names = [description[0] for description in self.cur.description]
+    #         df = pd.DataFrame(results, columns=column_names)
+    #         return df
+    #     except sqlite3.Error as e:
+    #         print(f"Error executing query: {e}")
+
+my_database = MyStreamingAnalysis()
+
+# # define a function that prints the database with some parameters
+# def print_my_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None, print_full_preview_url=False, max_lenght_each_values=50):
+#     '''
+#     This function prints the database with some parameters
+#     - database_name: the name of the database file to connect to
+#     - table_name: the name of the table to print, if None, print all tables
+#     - limit: the number of rows to print, if None, print all rows
+#     - order_by: the column name to sort the rows by, if None, use the default order
+#     '''
+
+#     # connect to the database with the given name
+#     conn = sqlite3.connect(database_name)
+#     cur = conn.cursor()
+
+#     # get the list of table names from the database
+#     cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+#     table_names = [row[0] for row in cur.fetchall()]
+
+#     # if table_name is None or not valid, print all tables
+#     if table_name is None or table_name not in table_names:
+#         for table in table_names:
+#             # print the table name
+#             print(f"Table: {table}")
+
+#             # get the column names from the table
+#             cur.execute(f"PRAGMA table_info({table})")
+#             column_names = [row[1] for row in cur.fetchall()]
+
+#             # print the column names as headers
+#             print(*column_names, sep='\t')
+
+#             # construct the SQL query to select rows from the table
+#             sql = f"SELECT * FROM {table}"
+
+#             # if order_by is not None and valid, add it to the query
+#             if order_by is not None and order_by in column_names:
+#                 sql += f" ORDER BY {order_by}"
+
+#             # if limit is not None and positive, add it to the query
+#             if limit is not None and limit > 0:
+#                 sql += f" LIMIT {limit}"
+
+#             # execute the query and fetch the rows
+#             cur.execute(sql)
+#             rows = cur.fetchall()
+
+#             # print the rows as values
+#             for row in rows:
+#                 # if print_full_preview_url is False, replace the preview_url column with a shorter version
+#                 if not print_full_preview_url and 'preview_url' in column_names:
+#                     # get the index of the preview_url column
+#                     index = column_names.index('preview_url')
+
+#                     # replace the preview_url column with a shorter version
+#                     row = row[:index] + ('...',) + row[index+1:]
+#                 # don't print more than 50 each row
+#                 row = [str(value)[:max_lenght_each_values] for value in row]
+#                 print(*row, sep='\t')
+
+#             # print a blank line after each table
+#             print()
+
+#     else:
+#         # if table_name is valid, print only that table
+#         # print the table name
+#         print(f"Table: {table_name}")
+
+#         # get the column names from the table
+#         cur.execute(f"PRAGMA table_info({table_name})")
+#         column_names = [row[1] for row in cur.fetchall()]
+
+#         # print the column names as headers
+#         print(*column_names, sep='\t')
+
+#         # construct the SQL query to select rows from the table
+#         sql = f"SELECT * FROM {table_name}"
+
+#         # if order_by is not None and valid, add it to the query
+#         if order_by is not None and order_by in column_names:
+#             sql += f" ORDER BY {order_by}"
+
+#         # if limit is not None and positive, add it to the query
+#         if limit is not None and limit > 0:
+#             sql += f" LIMIT {limit}"
+
+#         # execute the query and fetch the rows
+#         cur.execute(sql)
+#         rows = cur.fetchall()
+
+#         # print the rows as values
+#         for row in rows:
+#             print(*row, sep='\t')
+
+#     # close the connection
+#     conn.close()
 
 # def display_data_from_database(database_name='MyStreamingHistory.db', table_name=None, columns=None, rows=None):
 #     '''
@@ -1945,34 +2102,23 @@ def store_user_data():
         # schedule the next call after 30 seconds
         Timer(30, store_user_data).start()
 
-def store_streaming_data():
+def store_my_streaming_data():
     try:
         store_my_streaming_data_to_database(database_name='MyStreamingHistory.db')
         # schedule the next call after 8 minutes
-        print_the_data_from_the_database()
-        Timer(480, store_streaming_data).start()
+        # print_the_data_from_the_database()
+        Timer(600, store_my_streaming_data).start()
     except Exception as e:
         print(e)
         # print a message indicating retrying
         print("Retrying store_streaming_data in 8 seconds...")
         # schedule the next call after 8 seconds
-        Timer(8, store_streaming_data).start()
-
-# if __name__ == "__main__":
-#     # start the first thread as daemon
-#     Thread(target=store_user_data, daemon=True).start()
-#     # start the second thread as daemon
-#     Thread(target=store_streaming_data, daemon=True).start()
-#     # keep the main thread alive until Ctrl + C is pressed
-#     user_input = None # a variable to store the user input
-#     try:
-#         # read from the standard input
-#         user_input = input()
-#     except EOFError:
-#         # display the database if Ctrl + D is pressed
-#         display_data_from_database()
-#         # print_my_database()
+        Timer(10, store_my_streaming_data).start()
 
 if __name__ == "__main__":
-    display_data_from_database()
-    print_my_database()
+    # start the first thread as daemon
+    Thread(target=store_user_data, daemon=True).start()
+    # start the second thread as daemon
+    Thread(target=store_my_streaming_data, daemon=True).start()
+
+print_last_played_songs(1)
