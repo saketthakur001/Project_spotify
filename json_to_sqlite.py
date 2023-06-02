@@ -37,6 +37,7 @@ def get_friends_activity_json():
     # Return the json object
     return friends_activity_json
 
+
 # define a function to store the user data to a database
 def store_user_data_to_database(friends_activity_json, database_name='friends_activity.db'):
     '''
@@ -65,7 +66,7 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         user_id INTEGER PRIMARY KEY,
         user_uri TEXT NOT NULL,
         user_name TEXT NOT NULL,
-        user_image_url TEXT 
+        user_image_url TEXT NOT NULL
     )
     ''')
 
@@ -108,19 +109,32 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
     )
     ''')
 
-    # create a table for streamings with columns for user_id, track_id and timestamp
-    # add foreign key constraints to reference the user_id and track_id from the users and tracks tables respectively
+    # # create a table for streamings with columns for user_id, track_id and timestamp
+    # # add foreign key constraints to reference the user_id and track_id from the users and tracks tables respectively
+    # cur.execute('''CREATE TABLE IF NOT EXISTS streamings(
+    #     user_id INTEGER NOT NULL,
+    #     track_id INTEGER NOT NULL,
+    #     timestamp TEXT NOT NULL,
+    #     FOREIGN KEY (user_id) REFERENCES users(user_id),
+    #     FOREIGN KEY (track_id) REFERENCES tracks(track_id)
+    # )
+    # ''')
+
+     # create a table for streamings with columns for user_id, track_id, timestamp and context_id
+    # add foreign key constraints to reference the user_id, track_id and context_id from the users, tracks and context tables respectively
     cur.execute('''CREATE TABLE IF NOT EXISTS streamings(
         user_id INTEGER NOT NULL,
         track_id INTEGER NOT NULL,
         timestamp TEXT NOT NULL,
+        context_id INTEGER NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id),
-        FOREIGN KEY (track_id) REFERENCES tracks(track_id)
+        FOREIGN KEY (track_id) REFERENCES tracks(track_id),
+        FOREIGN KEY (context_id) REFERENCES context(context_id)
     )
+    ''')
+
+
     '''
-    )
-    '''
-    
     # Loop through the JSON data of friends' activity and store the data to the database
     - loop through the JSON data of friends' activity
     - get the user data from the JSON object
@@ -138,9 +152,7 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         try:
             user_image_url = data['user']['imageUrl']
         except:
-            # print the user name
-            print(user_name)
-            user_image_url = "no image"
+            user_image_url = ''
 
         # check if the user already exists in the users table by querying the user_url column
         cur.execute("SELECT user_id FROM users WHERE user_url = ?", (user_url,))
@@ -233,15 +245,26 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         # get the timestamp data from the JSON object
         timestamp = data['timestamp']
 
+        # # check if there is already a streaming with the same timestamp in the streamings table by querying the timestamp column
+        # cur.execute("SELECT * FROM streamings WHERE timestamp = ?", (timestamp,))
+        # streaming = cur.fetchone()
+
+        # # if the query returns None, it means there is no streaming with the same timestamp in the table
+        # if streaming is None:
+        #     # insert a new row into the streamings table with the user_id, track_id and timestamp values
+        #     cur.execute("INSERT INTO streamings (user_id, track_id, timestamp) VALUES (?, ?, ?)", (user_id, track_id, timestamp))
+        #     conn.commit()
+
         # check if there is already a streaming with the same timestamp in the streamings table by querying the timestamp column
         cur.execute("SELECT * FROM streamings WHERE timestamp = ?", (timestamp,))
         streaming = cur.fetchone()
 
         # if the query returns None, it means there is no streaming with the same timestamp in the table
         if streaming is None:
-            # insert a new row into the streamings table with the user_id, track_id and timestamp values
-            cur.execute("INSERT INTO streamings (user_id, track_id, timestamp) VALUES (?, ?, ?)", (user_id, track_id, timestamp))
+            # insert a new row into the streamings table with the user_id, track_id, timestamp and context_id values
+            cur.execute("INSERT INTO streamings (user_id, track_id, timestamp, context_id) VALUES (?, ?, ?, ?)", (user_id, track_id, timestamp, context_id))
             conn.commit()
+
 
 def print_the_data_from_the_database():
     '''

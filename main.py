@@ -342,42 +342,6 @@ def parse_streaming_history():
   return parsed_data
 
 
-
-# """ ATTENTION needed here Need to be updated """
-# # stores the recently played tracks in a csv file
-# def store_recently_played_tracks():
-#     """stores the recently played tracks in a csv file
-#     """
-#     # get the recently played tracks
-#     recently_played_tracks = get_recently_played_tracks_info()
-#     # create a dataframe from the stored recently played tracks
-#     old_recently_played_tracks = pd.read_csv(recently_played_file_name)
-#     # create a dataframe from the list of recently played tracks
-#     new_recently_played_tracks = pd.DataFrame(recently_played_tracks)
-#     # get the last played track from the old_recently_played_tracks
-#     last_played_at = old_recently_played_tracks['played_at'].iloc[-1]
-#     # reverse the new_recently_played_tracks
-#     new_recently_played_tracks = new_recently_played_tracks.iloc[::-1]
-
-#     # iterate though all the new_recently_played_tracks and find the one which is closest to the last_played_at
-#     for i in range(len(new_recently_played_tracks)):
-#         # get the difference between the last_played_at and the current track's played_at in hours
-#         diff = (timestamp_to_time(last_played_at) - timestamp_to_time(new_recently_played_tracks['played_at'].iloc[i])).total_seconds() / 3600
-#         # if the difference is negative, then the current track is the one which was last played
-#         if diff < 0:
-#             # get the index of the new_recently_played_tracks
-#             index = i
-#             # start the new_recently_played_tracks from the index
-#             new_recently_played_tracks = new_recently_played_tracks.iloc[index:]
-#             # iterate through all the new_recently_played_tracks and print the track name and time
-#             print("Newly added tracks:")
-#             for j in range(len(new_recently_played_tracks)):
-#                 print(new_recently_played_tracks['played_at'].iloc[j], new_recently_played_tracks['track_name'].iloc[j])
-#             # add the new_recently_played_tracks to the old_recently_played_tracks, use .concat() to avoid the index being repeated
-#             old_recently_played_tracks = pd.concat([old_recently_played_tracks, new_recently_played_tracks])
-#             # save the old_recently_played_tracks to the csv file
-#             old_recently_played_tracks.to_csv(recently_played_file_name, index=False)
-#             break
 # modify this function so that it could store the data to a sqllite database instead of csv
 def get_top_tracks(limit=200):
     """returns the top tracks
@@ -1184,19 +1148,32 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
     )
     ''')
 
-    # create a table for streamings with columns for user_id, track_id and timestamp
-    # add foreign key constraints to reference the user_id and track_id from the users and tracks tables respectively
+    # # create a table for streamings with columns for user_id, track_id and timestamp
+    # # add foreign key constraints to reference the user_id and track_id from the users and tracks tables respectively
+    # cur.execute('''CREATE TABLE IF NOT EXISTS streamings(
+    #     user_id INTEGER NOT NULL,
+    #     track_id INTEGER NOT NULL,
+    #     timestamp TEXT NOT NULL,
+    #     FOREIGN KEY (user_id) REFERENCES users(user_id),
+    #     FOREIGN KEY (track_id) REFERENCES tracks(track_id)
+    # )
+    # ''')
+
+     # create a table for streamings with columns for user_id, track_id, timestamp and context_id
+    # add foreign key constraints to reference the user_id, track_id and context_id from the users, tracks and context tables respectively
     cur.execute('''CREATE TABLE IF NOT EXISTS streamings(
         user_id INTEGER NOT NULL,
         track_id INTEGER NOT NULL,
         timestamp TEXT NOT NULL,
+        context_id INTEGER NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id),
-        FOREIGN KEY (track_id) REFERENCES tracks(track_id)
+        FOREIGN KEY (track_id) REFERENCES tracks(track_id),
+        FOREIGN KEY (context_id) REFERENCES context(context_id)
     )
+    ''')
+
+
     '''
-    )
-    '''
-    
     # Loop through the JSON data of friends' activity and store the data to the database
     - loop through the JSON data of friends' activity
     - get the user data from the JSON object
@@ -1304,15 +1281,653 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         # get the timestamp data from the JSON object
         timestamp = data['timestamp']
 
+        # # check if there is already a streaming with the same timestamp in the streamings table by querying the timestamp column
+        # cur.execute("SELECT * FROM streamings WHERE timestamp = ?", (timestamp,))
+        # streaming = cur.fetchone()
+
+        # # if the query returns None, it means there is no streaming with the same timestamp in the table
+        # if streaming is None:
+        #     # insert a new row into the streamings table with the user_id, track_id and timestamp values
+        #     cur.execute("INSERT INTO streamings (user_id, track_id, timestamp) VALUES (?, ?, ?)", (user_id, track_id, timestamp))
+        #     conn.commit()
+
         # check if there is already a streaming with the same timestamp in the streamings table by querying the timestamp column
         cur.execute("SELECT * FROM streamings WHERE timestamp = ?", (timestamp,))
         streaming = cur.fetchone()
 
         # if the query returns None, it means there is no streaming with the same timestamp in the table
         if streaming is None:
-            # insert a new row into the streamings table with the user_id, track_id and timestamp values
-            cur.execute("INSERT INTO streamings (user_id, track_id, timestamp) VALUES (?, ?, ?)", (user_id, track_id, timestamp))
+            # insert a new row into the streamings table with the user_id, track_id, timestamp and context_id values
+            cur.execute("INSERT INTO streamings (user_id, track_id, timestamp, context_id) VALUES (?, ?, ?, ?)", (user_id, track_id, timestamp, context_id))
             conn.commit()
+
+# define a class for friends activity analysis
+class FriendActivityAnaliser:
+    # define the constructor method that takes the database name as an input
+    def __init__(self, database_name="friends_activity.db"):
+        # store the database name as an attribute
+        self.database_name = database_name
+        # try to connect to the database and create a cursor object
+        try:
+            self.conn = sqlite3.connect(self.database_name)
+            self.cur = self.conn.cursor()
+            print(f"Connected to {self.database_name} successfully.")
+        except sqlite3.Error as e:
+            print(f"Error connecting to {self.database_name}: {e}")
+
+    # define a method that returns the most played tracks for a given user or users, time period, artist or artists, album or albums and limit
+    def top_tracks(self, user_id=None, time_period=None, by_artist_uri=None, by_album_uri=None, limit=None):
+        # construct the SQL query to select the user name, track uri, track name, artist uri, album uri, album name and count the number of streamings for each track
+        sql = """SELECT u.user_name, t.track_uri, t.track_name, a.artist_uri, al.album_uri, al.album_name, COUNT(s.track_id) AS streamings
+                 FROM users u
+                 JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                 JOIN tracks t ON s.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                 JOIN artists a ON t.artist_id = a.artist_id -- join the tracks and artists tables on artist_id
+                 JOIN albums al ON t.album_id = al.album_id -- join the tracks and albums tables on album_id
+                 """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add a AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # if by_artist_uri is not None, add a AND clause to filter by artist_uri
+        if by_artist_uri is not None:
+            # if by_artist_uri is a single value, use the equal operator
+            if isinstance(by_artist_uri, str):
+                sql += " AND a.artist_uri = ?"
+                params.append(by_artist_uri)
+            # if by_artist_uri is a list or tuple of values, use the IN operator
+            elif isinstance(by_artist_uri, (list, tuple)):
+                sql += f" AND a.artist_uri IN ({','.join(['?'] * len(by_artist_uri))})"
+                params.extend(by_artist_uri)
+
+        # if by_album_uri is not None, add a AND clause to filter by album_uri
+        if by_album_uri is not None:
+            # if by_album_uri is a single value, use the equal operator
+            if isinstance(by_album_uri, str):
+                sql += " AND al.album_uri = ?"
+                params.append(by_album_uri)
+            # if by_album_uri is a list or tuple of values, use the IN operator
+            elif isinstance(by_album_uri, (list, tuple)):
+                sql += f" AND al.album_uri IN ({','.join(['?'] * len(by_album_uri))})"
+                params.extend(by_album_uri)
+
+        # group by user name, track uri, track name, artist uri, album uri and album name
+        sql += " GROUP BY u.user_name, t.track_uri, t.track_name, a.artist_uri , al.album_uri , al.album_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+    # define a method that returns the most played artists for a given user or users, time period, and limit
+    def top_artists(self, user_id=None, time_period=None, limit=None):
+        # construct the SQL query to select the user name, artist uri, artist name, and count the number of streamings for each artist
+        sql = """SELECT u.user_name, a.artist_uri, a.artist_name, COUNT(s.track_id) AS streamings
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                JOIN tracks t ON s.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                JOIN artists a ON t.artist_id = a.artist_id -- join the tracks and artists tables on artist_id
+                """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add an AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # group by user name, artist uri, and artist name
+        sql += " GROUP BY u.user_name, a.artist_uri, a.artist_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+
+    
+    # define a function that returns the users that listened to a particular artist the most
+    def top_users_by_artist(self, artist_id, limit=None):
+        # construct the SQL query that joins the users, streamings, tracks, and artists tables on their respective columns and filters by the given artist_id
+        sql = """SELECT u.user_name, u.user_image_url, COUNT(s.track_id) AS streamings
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id
+                JOIN tracks t ON s.track_id = t.track_id
+                JOIN artists a ON t.artist_id = a.artist_id
+                WHERE a.artist_id = ?
+                GROUP BY u.user_name, u.user_image_url
+                ORDER BY streamings DESC
+            """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # add the artist_id parameter to the list
+        params.append(artist_id)
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+
+    # define a method that returns the most played albums for a given user or users, time period, and limit
+    def top_albums(self, user_id=None, time_period=None, limit=None):
+        # construct the SQL query to select the user name, album uri, album name, and count the number of streamings for each album
+        sql = """SELECT u.user_name, al.album_uri, al.album_name, COUNT(s.track_id) AS streamings
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                JOIN tracks t ON s.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                JOIN albums al ON t.album_id = al.album_id -- join the tracks and albums tables on album id
+                """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add an AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # group by user name, album uri, and album name
+        sql += " GROUP BY u.user_name, al.album_uri, al.album_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+
+    # define a method that returns the most played artists for a given user or users, time period, and limit
+    def top_contexts(self, user_id=None, time_period=None, limit=None, most_played_songs_in_the_context=1):
+        # construct the SQL query to select the user name, context URI, context name, count the number of streamings for each context, and the most played song or songs in the context
+        sql = """SELECT u.user_name, c.context_uri, c.context_name, COUNT(s.track_id) AS streamings,
+                (SELECT t.track_name || ' (' || COUNT(s2.track_id) || ')' -- concatenate the track name and the number of streamings for each track in the context
+                FROM streamings s2
+                JOIN tracks t ON s2.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                WHERE s2.context_id = s.context_id -- filter by the same context_id as in the outer query
+                GROUP BY t.track_name, t.track_id -- group by track name and track id
+                ORDER BY COUNT(s2.track_id) DESC -- order by streamings in descending order
+                LIMIT ? -- limit by the most_played_songs_in_the_context parameter
+                ) AS most_played_songs_in_the_context
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                JOIN context c ON s.context_id = c.context_id -- join the streamings and context tables on context_id
+            """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # add the most_played_songs_in_the_context parameter to the list
+        params.append(most_played_songs_in_the_context)
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add an AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # group by user name, context URI, and context name
+        sql += " GROUP BY u.user_name, c.context_uri, c.context_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")# define a class for friends activity analysis
+class FriendActivityAnaliser:
+    # define the constructor method that takes the database name as an input
+    def __init__(self, database_name="friends_activity.db"):
+        # store the database name as an attribute
+        self.database_name = database_name
+        # try to connect to the database and create a cursor object
+        try:
+            self.conn = sqlite3.connect(self.database_name)
+            self.cur = self.conn.cursor()
+            print(f"Connected to {self.database_name} successfully.")
+        except sqlite3.Error as e:
+            print(f"Error connecting to {self.database_name}: {e}")
+
+    # define a method that returns the most played tracks for a given user or users, time period, artist or artists, album or albums and limit
+    def top_tracks(self, user_id=None, time_period=None, by_artist_uri=None, by_album_uri=None, limit=None):
+        # construct the SQL query to select the user name, track uri, track name, artist uri, album uri, album name and count the number of streamings for each track
+        sql = """SELECT u.user_name, t.track_uri, t.track_name, a.artist_uri, al.album_uri, al.album_name, COUNT(s.track_id) AS streamings
+                 FROM users u
+                 JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                 JOIN tracks t ON s.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                 JOIN artists a ON t.artist_id = a.artist_id -- join the tracks and artists tables on artist_id
+                 JOIN albums al ON t.album_id = al.album_id -- join the tracks and albums tables on album_id
+                 """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add a AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # if by_artist_uri is not None, add a AND clause to filter by artist_uri
+        if by_artist_uri is not None:
+            # if by_artist_uri is a single value, use the equal operator
+            if isinstance(by_artist_uri, str):
+                sql += " AND a.artist_uri = ?"
+                params.append(by_artist_uri)
+            # if by_artist_uri is a list or tuple of values, use the IN operator
+            elif isinstance(by_artist_uri, (list, tuple)):
+                sql += f" AND a.artist_uri IN ({','.join(['?'] * len(by_artist_uri))})"
+                params.extend(by_artist_uri)
+
+        # if by_album_uri is not None, add a AND clause to filter by album_uri
+        if by_album_uri is not None:
+            # if by_album_uri is a single value, use the equal operator
+            if isinstance(by_album_uri, str):
+                sql += " AND al.album_uri = ?"
+                params.append(by_album_uri)
+            # if by_album_uri is a list or tuple of values, use the IN operator
+            elif isinstance(by_album_uri, (list, tuple)):
+                sql += f" AND al.album_uri IN ({','.join(['?'] * len(by_album_uri))})"
+                params.extend(by_album_uri)
+
+        # group by user name, track uri, track name, artist uri, album uri and album name
+        sql += " GROUP BY u.user_name, t.track_uri, t.track_name, a.artist_uri , al.album_uri , al.album_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+    # define a method that returns the most played artists for a given user or users, time period, and limit
+    def top_artists(self, user_id=None, time_period=None, limit=None):
+        # construct the SQL query to select the user name, artist uri, artist name, and count the number of streamings for each artist
+        sql = """SELECT u.user_name, a.artist_uri, a.artist_name, COUNT(s.track_id) AS streamings
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                JOIN tracks t ON s.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                JOIN artists a ON t.artist_id = a.artist_id -- join the tracks and artists tables on artist_id
+                """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add an AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # group by user name, artist uri, and artist name
+        sql += " GROUP BY u.user_name, a.artist_uri, a.artist_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+    
+    # define a function that returns the users that listened to a particular artist the most
+    def top_users_by_artist(self, artist_id, limit=None):
+        # construct the SQL query that joins the users, streamings, tracks, and artists tables on their respective columns and filters by the given artist_id
+        sql = """SELECT u.user_name, u.user_image_url, COUNT(s.track_id) AS streamings
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id
+                JOIN tracks t ON s.track_id = t.track_id
+                JOIN artists a ON t.artist_id = a.artist_id
+                WHERE a.artist_id = ?
+                GROUP BY u.user_name, u.user_image_url
+                ORDER BY streamings DESC
+            """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # add the artist_id parameter to the list
+        params.append(artist_id)
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+
+    # define a method that returns the most played albums for a given user or users, time period, and limit
+    def top_albums(self, user_id=None, time_period=None, limit=None):
+        # construct the SQL query to select the user name, album uri, album name, and count the number of streamings for each album
+        sql = """SELECT u.user_name, al.album_uri, al.album_name, COUNT(s.track_id) AS streamings
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                JOIN tracks t ON s.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                JOIN albums al ON t.album_id = al.album_id -- join the tracks and albums tables on album id
+                """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add an AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # group by user name, album uri, and album name
+        sql += " GROUP BY u.user_name, al.album_uri, al.album_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql, params)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+
+    # define a method that returns the most played artists for a given user or users, time period, and limit
+    def top_contexts(self, user_id=None, time_period=None, limit=None, most_played_songs_in_the_context=1):
+        # construct the SQL query to select the user name, context URI, context name, count the number of streamings for each context, and the most played song or songs in the context
+        sql = """SELECT u.user_name, c.context_uri, c.context_name, COUNT(s.track_id) AS streamings,
+                (SELECT t.track_name || ' (' || COUNT(s2.track_id) || ')' -- concatenate the track name and the number of streamings for each track in the context
+                FROM streamings s2
+                JOIN tracks t ON s2.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                WHERE s2.context_id = s.context_id -- filter by the same context_id as in the outer query
+                GROUP BY t.track_name, t.track_id -- group by track name and track id
+                ORDER BY COUNT(s2.track_id) DESC -- order by streamings in descending order
+                LIMIT ? -- limit by the most_played_songs_in_the_context parameter
+                ) AS most_played_songs_in_the_context
+                FROM users u
+                JOIN streamings s ON u.user_id = s.user_id -- join the users and streamings tables on user_id
+                JOIN context c ON s.context_id = c.context_id -- join the streamings and context tables on context_id
+            """
+
+        # initialize a list to store the query parameters
+        params = []
+
+        # add the most_played_songs_in_the_context parameter to the list
+        params.append(most_played_songs_in_the_context)
+
+        # if user_id is not None, add a WHERE clause to filter by user_id
+        if user_id is not None:
+            # if user_id is a single value, use the equal operator
+            if isinstance(user_id, int):
+                sql += " WHERE u.user_id = ?"
+                params.append(user_id)
+            # if user_id is a list or tuple of values, use the IN operator
+            elif isinstance(user_id, (list, tuple)):
+                sql += f" WHERE u.user_id IN ({','.join(['?'] * len(user_id))})"
+                params.extend(user_id)
+
+        # if time_period is not None, add an AND clause to filter by timestamp
+        if time_period is not None:
+            # if time_period is a tuple of start and end values, use the BETWEEN operator
+            if isinstance(time_period, tuple) and len(time_period) == 2:
+                sql += " AND s.timestamp BETWEEN ? AND ?"
+                params.extend(time_period)
+            # if time_period is a single value for start or end, use the greater than or equal or less than or equal operator
+            elif isinstance(time_period, str):
+                # check if the value starts with '>' or '<' and use the corresponding operator
+                if time_period.startswith('>'):
+                    sql += " AND s.timestamp >= ?"
+                    params.append(time_period[1:])
+                elif time_period.startswith('<'):
+                    sql += " AND s.timestamp <= ?"
+                    params.append(time_period[1:])
+
+        # group by user name, context URI, and context name
+        sql += " GROUP BY u.user_name, c.context_uri, c.context_name"
+
+        # order by streamings in descending order
+        sql += " ORDER BY streamings DESC"
+
+        # if limit is not None and is an integer value greater than zero, add a LIMIT clause to limit the result to the given limit value
+        if limit is not None and isinstance(limit, int) and limit > 0:
+            sql += f" LIMIT {limit}"
+
+        # try to execute the query and fetch the results
+        # try:
+        self.cur.execute(sql, params)
+        results = self.cur.fetchall()
+        # return the results as a list of tuples
+        return results
+        # except sqlite3.Error as e:
+        #     print(f"Error executing query: {e}")
+
 
 # def print_the_data_from_the_database():
 #     '''
