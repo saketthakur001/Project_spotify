@@ -15,9 +15,16 @@ import time
 import clint_id_secret
 from dateutil import parser
 import sys
-from threading import Thread, Timer
-import time
-
+# from threading import Thread, Timer
+import threading
+import colorama
+from colorama import Fore, Style
+import signal
+# import sys
+# from threading import Thread, Timer
+# import time
+# from typing import Callable, Generator
+# os.environ['ANSICON'] = 'on'
 
 # # local imports
 # import json_to_sqlite
@@ -136,6 +143,24 @@ def get_recently_played_tracks(limit=50):
     """
     recently_played = user_read_recently_played.current_user_recently_played(limit=limit, )
     return recently_played
+
+# def get_recently_played_tracks(limit=50):
+#     """ Get the recently played tracks from the user's account.
+
+#     parameters
+#     ----------
+#     limit : int (default=50)
+#         The number of tracks to return. Default: 50. Minimum: 1. Maximum: 50.
+    
+#     Returns
+#     -------
+#     recently_played : dict
+#         A dictionary containing the recently played tracks and their listening time.
+#         The keys are 'tracks' and 'listening_time'.
+#     """
+#     recently_played = user_read_recently_played.current_user_recently_played(limit=limit, )
+#     listening_time = sum([track['duration_ms'] for track in recently_played['items']])
+#     return {'tracks': recently_played, 'listening_time': listening_time}
 
 def add_to_playlist(playlist_id, list_of_tracks):
     """ Add the tracks to the playlist.
@@ -1188,7 +1213,10 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         # print(data)
         user_url = data['user']['uri']
         user_name = data['user']['name']
-        user_image_url = data['user']['imageUrl']
+        try:
+            user_image_url = data['user']['imageUrl']
+        except:
+            user_image_url = None
 
         # check if the user already exists in the users table by querying the user_url column
         cur.execute("SELECT user_id FROM users WHERE user_url = ?", (user_url,))
@@ -2120,7 +2148,7 @@ def time_variation(timestamp):
     elif minutes >  60 and minutes < 24*60:
         time_since_played = f"{round(minutes/60)} hr {round(minutes%60)} min ago"
     elif minutes > 24*60:
-        print(("I am liike what"))
+        # print(("I am liike what"))
         time_since_played = f"{round(minutes//(24*60))} days ago"
     return time_since_played
 
@@ -2185,6 +2213,8 @@ def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
         FOREIGN KEY (track_id) REFERENCES tracks(track_id)
         )
     ''')
+    new_songs = []
+
     streaming_activity_json = parse_streaming_history()
     # loop through the JSON data of streaming activity
     for data in streaming_activity_json:
@@ -2253,6 +2283,7 @@ def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
             cur.execute("INSERT INTO tracks (track_uri, track_name, track_number, duration_ms, disc_number, popularity, preview_url, album_id, artist_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (track_uri, track_name, track_number, duration_ms, disc_number, popularity, preview_url, album_id, artist_id))
             conn.commit()
             track_id = cur.lastrowid
+            # new_songs.append((track_name, artist_name, album_name, release_date, played_at))
         else:
             # if the query returns a tuple, it means the track already exists in the table and extract the first element of the tuple as the track_id value
             track_id = track_id[0]
@@ -2272,6 +2303,11 @@ def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
             # insert a new row into the streamings table with the track_id and played_at values
             cur.execute("INSERT INTO streamings (track_id, played_at) VALUES (?, ?)", (track_id, played_at))
             conn.commit()
+            print(f"New song added: {track_name} by {artist_name} from the album {album_name} released on {release_date} at {played_at}")
+
+    # print the newly added songs and their data
+    # for song in new_songs:
+    #     print(f"New song added: {song[0]} by {song[1]} from the album {song[2]} released on {song[3]}")
 
     # close the connection
     conn.close()
@@ -2431,7 +2467,7 @@ class MyStreamingAnalysis:
     #     except sqlite3.Error as e:
     #         print(f"Error executing query: {e}")
 
-my_database = MyStreamingAnalysis()
+# my_database = MyStreamingAnalysis()
 
 # # define a function that prints the database with some parameters
 # def print_my_database(database_name='MyStreamingHistory.db', table_name=None, limit=None, order_by=None, print_full_preview_url=False, max_lenght_each_values=50):
@@ -2619,16 +2655,16 @@ my_database = MyStreamingAnalysis()
 #             return None
 
 
-def count_down(time_in_sec):
-    '''
-    This function takes a time in seconds as an argument and prints a countdown
-    '''
-    # loop through the time in seconds
-    for i in range(time_in_sec, 0, -1):
-        # print the time in seconds
-        print(i)
-        # wait one second
-        time.sleep(1)
+# def count_down(time_in_sec):
+#     '''
+#     This function takes a time in seconds as an argument and prints a countdown
+#     '''
+#     # loop through the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         # print the time in seconds
+#         print(i)
+#         # wait one second
+#         time.sleep(1)
 
 
 # if __name__ == "__main__":
@@ -2648,92 +2684,265 @@ def count_down(time_in_sec):
 #             print("Something went wrong")
 #             count_down(30)
 
-from threading import Thread, Timer
-import time
+
+# def count_down(time_in_sec: int, callback: Callable = None) -> Generator[int, None, None]:
+#     '''
+#     This function takes a time in seconds as an argument and yields a countdown.
+
+#     Optionally, it can execute a callback function after each countdown value.
+
+#     >>> list(count_down(3))
+#     [3, 2, 1]
+#     >>> list(count_down(3, print))
+#     3
+#     2
+#     1
+#     [None, None, None]
+#     '''
+
+#     # yield the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         yield i
+#         # execute the callback if given
+#         if callback:
+#             callback()
+#         # wait one second
+#         time.sleep(1)
 
 
-from typing import Callable, Generator
+# def count_down(time_in_sec):
+#     '''
+#     This function takes a time in seconds as an argument and prints a countdown
+#     '''
+#     # loop through the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         # print the time in seconds
+#         print(i)
+#         # wait one second
+#         time.sleep(1)
 
-def count_down(time_in_sec: int, callback: Callable = None) -> Generator[int, None, None]:
+
+
+# def count_down(time_in_sec):
+#     '''
+#     This function takes a time in seconds as an argument and prints a countdown
+#     '''
+#     # loop through the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         # print the time in seconds
+#         print(i)
+#         # wait one second
+#         time.sleep(1)
+
+# def store_user_data():
+#     try:
+#         store_user_data_to_database(get_friends_activity_json())
+
+#         # print_last_played_songs(1)
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
+#     except Exception as e:
+#         print(e)
+#         # print a message indicating retrying
+#         print("Retrying store_user_data in 30 seconds...")
+#         # schedule the next call after 30 seconds
+#         Timer(30, store_user_data).start()
+
+# def store_my_streaming_data():
+#     try:
+#         store_my_streaming_data_to_database()
+#         # schedule the next call after 8 minutes
+
+#         Timer(600, store_my_streaming_data).start()
+#     except Exception as e:
+#         print(e)
+#         # print a message indicating retrying
+#         print("Retrying store_streaming_data in 8 seconds...")
+#         # schedule the next call after 8 seconds
+#         Timer(10, store_my_streaming_data).start()
+
+# if __name__ == "__main__":
+#     store_user_data_to_database(get_friends_activity_json())
+#     # print_the_data_from_the_database()
+#     print_last_played_songs(1)
+#     store_my_streaming_data_to_database()
+
+
+# def count_down(time_in_sec, text=''):
+#     '''
+#     This function takes a time in seconds and a text as arguments and prints a countdown
+#     '''
+#     # initialize colorama
+#     colorama.init()
+#     # define the colour codes as constants
+#     # GREEN = Fore.GREEN
+#     # BLUE = Fore.BLUE
+#     # RESET = Style.RESET_ALL
+
+#     # use curly braces to mark where the colour codes should go
+#     # text = "{green}Time left: {blue}{time}{green} seconds{reset}"
+
+    
+#     # loop through the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         # try to print the text with the time in seconds in green color
+#         try:
+#             # print(Fore.GREEN + text.format(time=i) + Style.RESET_ALL, end="\r", flush=True)
+#             # print(Fore.GREEN + "Time left: " + Fore.RED + "{time}".format(time=i) + Style.RESET_ALL + " seconds", end="\r", flush=True)
+#             print(Fore.GREEN + "Time left: " + Fore.RED + "{time}".format(time=i) + Fore.GREEN + " seconds" + Style.RESET_ALL, end="\r", flush=True)
+#             # print(text.format(green=GREEN, blue=BLUE, reset=RESET, time=i), end="\r", flush=True)
+#             # use the format method to insert the colour codes and the time value
+#             # print(text.format(green=GREEN, blue=BLUE, reset=RESET, time=i), end="\r", flush=True)
+    
+
+
+#             # wait one second
+#             time.sleep(1)
+#         # except keyboard interrupt error and print a message in red color
+#         except KeyboardInterrupt:
+#             print(Fore.RED + "\nCountdown interrupted by user." + Style.RESET_ALL)
+#             break
+    
+#     # print a final message in yellow color
+#     print(Fore.YELLOW + "\nCountdown finished." + Style.RESET_ALL)
+
+# def count_down(time_in_sec, text):
+#     '''
+#     This function takes a time in seconds and a text as arguments and prints a countdown
+#     '''
+#     # initialize colorama
+#     colorama.init()
+    
+#     # loop through the time in seconds
+#     for i in range(time_in_sec, 0, -1):
+#         # try to print the text with the time in seconds in green color
+#         try:
+#             print(Fore.GREEN + text.format(time=i) + Style.RESET_ALL, end="\r", flush=True)
+#             # wait one second
+#             time.sleep(1)
+#         # except keyboard interrupt error and print a message in red color
+#         except KeyboardInterrupt:
+#             print(Fore.RED + "\nCountdown interrupted by user." + Style.RESET_ALL)
+#             break
+    
+#     # print a final message in yellow color
+#     print(Fore.YELLOW + "\nCountdown finished." + Style.RESET_ALL)
+
+# count_down(10, "Time left: {time} seconds")
+
+# count_down(10, "Time left: {time} seconds")
+
+
+
+
+
+def count_down(time_in_sec, text):
     '''
-    This function takes a time in seconds as an argument and yields a countdown.
-
-    Optionally, it can execute a callback function after each countdown value.
-
-    >>> list(count_down(3))
-    [3, 2, 1]
-    >>> list(count_down(3, print))
-    3
-    2
-    1
-    [None, None, None]
+    This function takes a time in seconds and a text as arguments and prints a countdown
     '''
-
-    # yield the time in seconds
-    for i in range(time_in_sec, 0, -1):
-        yield i
-        # execute the callback if given
-        if callback:
-            callback()
-        # wait one second
-        time.sleep(1)
-
-
-def count_down(time_in_sec):
-    '''
-    This function takes a time in seconds as an argument and prints a countdown
-    '''
+    # initialize colorama
+    colorama.init()
+    
     # loop through the time in seconds
     for i in range(time_in_sec, 0, -1):
-        # print the time in seconds
-        print(i)
-        # wait one second
-        time.sleep(1)
+        # try to print the text with the time in seconds in green color
+        try:
+            # print(Fore.GREEN + text.format(time=i) + Style.RESET_ALL, end="\r", flush=True)
+            # print(Fore.GREEN + "Time left: " + Fore.RED + "{time}".format(time=i) + Style.RESET_ALL + " seconds", end="\r", flush=True)
+            # print(Fore.GREEN + "Time left:")
+            # print(Fore.GREEN + "Time left: " + Fore.RED + "{time}".format(time=i) + Fore.GREEN + " seconds" + Style.RESET_ALL, end="\r", flush=True)
+            # print("Time left: " + Fore.RED + "{time}".format(time=i) + " seconds", end="\r", flush=True)
+            # wait one second
+            print("Updating database in "+"{time}".format(time=i)+" seconds ", end="\r", flush=True)
+            time.sleep(1)
+        # except keyboard interrupt error and print a message in red color
+        except KeyboardInterrupt:
+            print("\nCountdown interrupted by user.")
+            break
+    
+    # print a final message in yellow color
+    # print(Fore.YELLOW + "\nCountdown finished." + Style.RESET_ALL)
+    print("\n updating...")
+
+# count_down(10, "Time left: {time} seconds")
 
 
+# def first_part():
+#     while True:
+#         # try to store user data to database
+#         try:
+#             store_user_data_to_database(get_friends_activity_json())
+#             print_last_played_songs(1)
+#         except Exception as e:
+#             # if there is an error, wait 20 seconds and retry
+#             print(e)
+#             time.sleep(20)
+#             continue
+#         # if successful, wait 30 seconds and repeat
+#         count_down(30, "Time left: {time} seconds")
 
-def count_down(time_in_sec):
-    '''
-    This function takes a time in seconds as an argument and prints a countdown
-    '''
-    # loop through the time in seconds
-    for i in range(time_in_sec, 0, -1):
-        # print the time in seconds
-        print(i)
-        # wait one second
-        time.sleep(1)
+# def second_part():
+#     while True:
+#         # store streaming data to database
+#         store_my_streaming_data_to_database()
+#         # wait 10 minutes and repeat
+#         time.sleep(600)
 
-def store_user_data():
-    try:
-        store_user_data_to_database(get_friends_activity_json())
-        # print_the_data_from_the_database()
-        print_last_played_songs(1)
-        # schedule the next call after 30 seconds
-        Timer(30, store_user_data).start()
-    except Exception as e:
-        print(e)
-        # print a message indicating retrying
-        print("Retrying store_user_data in 30 seconds...")
-        # schedule the next call after 30 seconds
-        Timer(30, store_user_data).start()
+# if __name__ == "__main__":
+#     # create two threads for each part
+#     thread1 = threading.Thread(target=first_part)
+#     thread2 = threading.Thread(target=second_part)
+#     # start both threads
+#     thread1.start()
+#     thread2.start()
+#     # join both threads to the main thread
+#     thread1.join()
+#     thread2.join()
 
-def store_my_streaming_data():
-    try:
-        store_my_streaming_data_to_database(database_name='MyStreamingHistory.db')
-        # schedule the next call after 8 minutes
-        # print_the_data_from_the_database()
-        Timer(600, store_my_streaming_data).start()
-    except Exception as e:
-        print(e)
-        # print a message indicating retrying
-        print("Retrying store_streaming_data in 8 seconds...")
-        # schedule the next call after 8 seconds
-        Timer(10, store_my_streaming_data).start()
+# print_last_played_songs(1)
+# import threading
+# import time
+
+
+def first_part():
+    while True:
+        # try to store user data to database
+        try:
+            store_user_data_to_database(get_friends_activity_json())
+            print_last_played_songs(1)
+        except Exception as e:
+            # if there is an error, wait 20 seconds and retry
+            print(e)
+            time.sleep(20)
+            continue
+        # if successful, wait 30 seconds and repeat
+        count_down(30, "")
+
+def second_part():
+    while True:
+        # store streaming data to database
+        store_my_streaming_data_to_database()
+        # print('hey it\'s me')
+        # wait 10 minutes and repeat
+        time.sleep(600)
+
+def handler(signal, frame):
+    print("Ctrl+C pressed... Exiting")
+    sys.exit(0)
 
 if __name__ == "__main__":
-    # start the first thread as daemon
-    Thread(target=store_user_data, daemon=True).start()
-    # start the second thread as daemon
-    Thread(target=store_my_streaming_data, daemon=True).start()
-
-print_last_played_songs(1)
+    # create two threads for each part
+    thread1 = threading.Thread(target=first_part)
+    thread2 = threading.Thread(target=second_part)
+    # set both threads as daemons
+    thread1.daemon = True
+    thread2.daemon = True
+    # start both threads
+    thread1.start()
+    thread2.start()
+    # register signal handler
+    signal.signal(signal.SIGINT, handler)
+    # join both threads with a timeout
+    while True:
+        thread1.join(1)
+        thread2.join(1)

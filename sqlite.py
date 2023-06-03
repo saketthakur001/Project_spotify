@@ -850,3 +850,35 @@ class FriendActivityAnaliser:
             return results
         except sqlite3.Error as e:
             print(f"Error executing query: {e}")
+
+
+import time
+import colorama
+from colorama import Fore, Style
+
+def count_down(time_in_sec, text):
+    '''
+    This function takes a time in seconds and a text as arguments and prints a countdown
+    '''
+    # initialize colorama
+    colorama.init()
+    
+    # loop through the time in seconds
+    for i in range(time_in_sec, 0, -1):
+        # try to print the text with the time in seconds in green color
+        try:
+            print(Fore.GREEN + text.format(time=i) + Style.RESET_ALL, end="\r", flush=True)
+            # print(Fore.GREEN + "Time left: " + Fore.RED + "{time}".format(time=i) + Style.RESET_ALL + " seconds", end="\r", flush=True)
+            # print(Fore.GREEN + "Time left: " + Fore.RED + "{time}".format(time=i) + Fore.GREEN + " seconds" + Style.RESET_ALL, end="\r", flush=True)
+
+            # wait one second
+            time.sleep(1)
+        # except keyboard interrupt error and print a message in red color
+        except KeyboardInterrupt:
+            print(Fore.RED + "\nCountdown interrupted by user." + Style.RESET_ALL)
+            break
+    
+    # print a final message in yellow color
+    print(Fore.YELLOW + "\nCountdown finished." + Style.RESET_ALL)
+
+count_down(10, "Time left: {time} seconds")
