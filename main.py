@@ -2483,6 +2483,8 @@ def second_part():
         # print('hey it\'s me')
         # wait 10 minutes and repeat
         time.sleep(600)
+        # count_down(20, "")
+
 
 def handler(signal, frame):
     print("Ctrl+C pressed... Exiting")
