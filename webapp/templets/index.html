@@ -1,130 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/style.css">
-    <title>Mew-Cat</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #111111;
+}
+
+ul {
+  list-style-type: none;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 50px;
+}
+
+li {
+  color: white;
+  font-size: 20px;
+  background-color: #333333;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+li:hover {
+  color: limegreen;
+}
+
+li:active {
+  transform: scale(0.9);
+}
+
+.tab {
+  width: 80%;
+  margin: auto;
+  border: 2px solid limegreen;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+h1 {
+  color: limegreen;
+  text-align: center;
+}
+
+p {
+  color: white;
+}
+</style>
 </head>
 <body>
-    <h1>Mew-Cat</h1>
-    <p>This website helps you to manage your spotify playlist, find new music, and more.</p>
-    <nav>
-        <ul>
-            <li><a href="#manage">Manage your spotify playlist</a></li>
-            <li><a href="#most-played">Your most played</a></li>
-            <li><a href="#find-new">Find new music</a></li>
-        </ul>
-    </nav>
-    <div id="manage">
-        <h2>Manage your spotify playlist</h2>
-        <p>Here you can see all your playlists and edit them as you like.</p>
-        <!-- You will need to use some javascript to fetch and display your playlists from spotify api -->
-        <div id="playlists">
-            <!-- Example of a playlist card -->
-            <div class="playlist-card">
-                <img src="playlist-cover.jpg" alt="Playlist cover">
-                <h3>Playlist name</h3>
-                <p>Playlist description</p>
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
-        </div>
-    </div>
-    <div id="most-played">
-        <h2>Your most played</h2>
-        <p>Here you can see your top tracks, artists, and genres based on your listening history.</p>
-        <!-- You will need to use some javascript to fetch and display your most played data from spotify api -->
-        <div id="top-tracks">
-            <h3>Your top tracks</h3>
-            <!-- Example of a track card -->
-            <div class="track-card">
-                <img src="track-cover.jpg" alt="Track cover">
-                <h4>Track name</h4>
-                <p>Artist name</p>
-                <button>Play</button>
-                <button>Add to playlist</button>
-            </div>
-        </div>
-        <div id="top-artists">
-            <h3>Your top artists</h3>
-            <!-- Example of an artist card -->
-            <div class="artist-card">
-                <img src="artist-photo.jpg" alt="Artist photo">
-                <h4>Artist name</h4>
-                <p>Genre</p>
-                <button>Follow</button>
-                <button>View profile</button>
-            </div>
-        </div>
-        <div id="top-genres">
-            <h3>Your top genres</h3>
-            <!-- Example of a genre card -->
-            <div class="genre-card">
-                <img src="genre-image.jpg" alt="Genre image">
-                <h4>Genre name</h4>
-                <button>Explore</button>
-            </div>
-        </div>
-
-    </div>
-
-    <div id="find-new">
-        <h2>Find new music</h2>
-        <p>Here you can discover new releases, recommendations, and more based on your preferences and mood.</p>
-
-        <!-- You will need to use some javascript to fetch and display new music data from spotify api -->
-
-        <!-- Example of a section for new releases -->
-        <div id="new-releases">
-            <h3>New releases</h3>
-
-            <!-- Example of an album card -->
-            <div class="album-card">
-                <img src="album-cover.jpg" alt="Album cover">
-                <h4>Album name</h4>
-                <p>Artist name</p>
-
-                <!-- You can use a button or a link to play the album or view its details -->
-                <!-- For example: -->
-                <!-- button onclick="playAlbum('album-id')">Play album/button -->
-                <!-- a href="/album-details?album-id">View details/a -->
-
-            </div>
-
-        </div>
-
-        <!-- Example of a section for recommendations -->
-        <!-- You can use different criteria to generate recommendations, such as genre, mood, popularity, etc. -->
-        <!-- For example: -->
-        <!-- div id="recommendations-by-genre" -->
-        <!-- h3>Recommendations by genre/h3 -->
-
-        <!-- You can use a select element or a list of buttons to let the user choose a genre -->
-        <!-- For example: -->
-        <!-- select id="genre-select" onchange="getRecommendationsByGenre(this.value)" -->
-        <!-- option value="rock">Rock/option -->
-        <!-- option value="pop">Pop/option -->
-        <!-- option value="hip-hop">Hip-hop/option -->
-        <!-- /select -->
-
-        <!-- You can use a similar template as the album card to display the recommendations -->
-        <!-- For example: -->
-        <!-- div class="recommendation-card" -->
-        <!-- img src="recommendation-cover.jpg" alt="Recommendation cover" -->
-        <!-- h4>Recommendation name/h4 -->
-        <!-- p>Artist name/p -->
-
-        <!-- You can use a button or a link to play the recommendation or view its details -->
-        <!-- For example: -->
-        <!-- button onclick="playRecommendation('recommendation-id')">Play recommendation/button -->
-        <!-- a href="/recommendation-details?recommendation-id">View details/a -->
-
-        <!-- /div -->
-
-        <!-- /div -->
-
-    </div>
-
+<ul>
+  <li>Auto</li>
+  <li>Library</li>
+  <li>Explore</li>
+  <li>Friends Activity</li>
+</ul>
+<div class="tab">
+<h1>Welcome to my page!</h1>
+<p>This is a sample page with tabs on the top. You can use HTML and CSS to customize it as you like.</p>
+</div>
 </body>
 </html>
