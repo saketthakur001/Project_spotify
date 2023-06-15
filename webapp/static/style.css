@@ -1,0 +1,109 @@
+/* You can use this line in your html head to link to this css file */
+
+/* You can use this line to import a font from Google Fonts */
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+/* You can use this selector to style the entire body of the website */
+body {
+    /* You can use this property to set the font family */
+    font-family: 'Roboto', sans-serif;
+
+    /* You can use this property to set the background color */
+    background-color: #f0f0f0;
+
+    /* You can use this property to set the margin */
+    margin: 0;
+
+    /* You can use this property to set the padding */
+    padding: 0;
+}
+
+/* You can use this selector to style the h1 element */
+h1 {
+    /* You can use this property to set the text color */
+    color: #333333;
+
+    /* You can use this property to set the text alignment */
+    text-align: center;
+
+    /* You can use this property to set the font size */
+    font-size: 48px;
+
+    /* You can use this property to set the margin */
+    margin: 20px;
+}
+
+/* You can use this selector to style the p element */
+p {
+    /* You can use this property to set the text color */
+    color: #666666;
+
+    /* You can use this property to set the text alignment */
+    text-align: center;
+
+    /* You can use this property to set the font size */
+    font-size: 18px;
+
+    /* You can use this property to set the margin */
+    margin: 10px;
+}
+
+/* You can use this selector to style the nav element */
+nav {
+    /* You can use this property to set the background color */
+    background-color: #333333;
+
+    /* You can use this property to set the height */
+    height: 60px;
+}
+
+/* You can use this selector to style the ul element inside the nav element */
+nav ul {
+    /* You can use this property to remove the default list style */
+    list-style: none;
+
+    /* You can use this property to set the margin */
+    margin: 0;
+
+    /* You can use this property to set the padding */
+    padding: 0;
+}
+
+/* You can use this selector to style the li element inside the ul element inside the nav element */
+nav ul li {
+    /* You can use this property to display the list items horizontally */
+    display: inline-block;
+
+    /* You can use this property to set the width of each list item */
+    width: 33.33%;
+
+    /* You can use this property to align the list items vertically */
+    vertical-align: middle;
+}
+
+/* You can use this selector to style the a element inside the li element inside the ul element inside the nav element */
+nav ul li a {
+    /* You can use this property to remove the default text decoration */
+    text-decoration: none;
+
+    /* You can use this property to set the text color */
+    color: #ffffff;
+
+    /* You can use this property to set the font size */
+    font-size: 24px;
+
+    /* You can use this property to display the link as a block element */
+    display: block;
+
+    /* You can use this property to set the height of each link */
+    height: 60px;
+
+    /* You can use this property to align the link text vertically and horizontally */
+    line-height: 60px;
+}
+
+/* You can use this selector to style a div with an id of manage, most-played, or find-new */
+
+div#manage, div#most-played, div#find-new {
+    
+}
