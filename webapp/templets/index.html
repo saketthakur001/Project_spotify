@@ -9,8 +9,17 @@
 
 body {
   font-family: Arial, sans-serif;
-  background-color: #111111;
+  background-color: #000000;
 }
+
+/* nv_box {
+  width: 200px;
+  height: 50px;
+  background-color: #333333;
+  border: 2px solid limegreen;
+  border-radius: 10px;
+  margin: 10px;
+} */
 
 ul {
   list-style-type: none;
@@ -18,12 +27,17 @@ ul {
   justify-content: space-around;
   align-items: center;
   height: 50px;
+  background-color: #111111; 
+  border-radius: 10px; 
+  margin-bottom: 10px; 
+  margin-top: 10px; /* added this line */
+  margin-left: 300;
 }
 
 li {
-  color: white;
+  color: black;
   font-size: 20px;
-  background-color: #333333;
+  background-color: limegreen;
   border-radius: 5px;
   padding: 10px;
 }
@@ -36,14 +50,22 @@ li:active {
   transform: scale(0.9);
 }
 
-.tab {
+.container {
   width: 80%;
-  margin: auto;
-  border: 2px solid limegreen;
-  border-radius: 10px;
-  padding: 20px;
+  /* margin: auto; */
 }
-
+.tab {
+    list-style-type: none;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: calc(100vh - 94px);
+    background-color: #111111;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-left: 300px; 
+}
 h1 {
   color: limegreen;
   text-align: center;
@@ -52,18 +74,71 @@ h1 {
 p {
   color: white;
 }
+
+
+.content {
+ display:none;
+}
+
+.content.active {
+ display:block; 
+}
+
+
 </style>
 </head>
+
 <body>
-<ul>
-  <li>Auto</li>
-  <li>Library</li>
-  <li>Explore</li>
-  <li>Friends Activity</li>
-</ul>
-<div class="tab">
-<h1>Welcome to my page!</h1>
-<p>This is a sample page with tabs on the top. You can use HTML and CSS to customize it as you like.</p>
-</div>
+  <ul>
+    <li onclick="showTab('auto')">Auto</li>
+    <li onclick="showTab('library')">Library</li>
+    <li onclick="showTab('explore')">Explore</li>
+    <li onclick="showTab('friends')">Friends Activity</li>
+  </ul>
+  <div class="container">
+      
+    </div>
+    <div class="right">
+      <div class="main">
+        <div id="auto" class="content active">
+          <div class="tab">
+            <h1>Auto</h1>
+            <p>This is a sample page about auto. You can use HTML and CSS to customize it as you like.</p>
+          </div>
+        </div>
+        <div id="library" class="content">
+          <div class="tab">
+            <h1>Library</h1>
+            <p>This is a sample page about library. You can use HTML and CSS to customize it as you like.</p>
+          </div>
+        </div>
+        <div id="explore" class="content">
+          <div class="tab">
+            <h1>Explore</h1>
+            <p>This is a sample page about explore. You can use HTML and CSS to customize it as you like.</p>
+          </div>
+        </div>
+        <div id="friends" class="content">
+          <div class="tab">
+            <h1>Friends Activity</h1>
+            <p>This is a sample page about friends activity. You can use HTML and CSS to customize it as you like.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  
+<script>
+function showTab(tabName) {
+  var tabs = document.getElementsByClassName("content");
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove("active");
+  }
+  var tab = document.getElementById(tabName);
+  tab.classList.add("active");
+}
+</script>
 </body>
 </html>
