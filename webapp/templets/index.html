@@ -12,21 +12,12 @@ body {
   background-color: #000000;
 }
 
-/* nv_box {
-  width: 200px;
-  height: 50px;
-  background-color: #333333;
-  border: 2px solid limegreen;
-  border-radius: 10px;
-  margin: 10px;
-} */
-
 ul {
   list-style-type: none;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 50px;
+  height: 70px;
   background-color: #111111; 
   border-radius: 10px; 
   margin-bottom: 10px; 
@@ -35,9 +26,9 @@ ul {
 }
 
 li {
-  color: black;
+  color: rgb(255, 255, 255);
   font-size: 20px;
-  background-color: limegreen;
+  background-color: rgb(0, 0, 0);
   border-radius: 5px;
   padding: 10px;
 }
@@ -50,10 +41,24 @@ li:active {
   transform: scale(0.9);
 }
 
+.nav{
+    list-style-type: none;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: calc(100vh - 94px);
+    background-color: #111111;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-right: calc(100vw - 300px);) 
+}
+
 .container {
   width: 80%;
-  /* margin: auto; */
+  margin: auto;
 }
+
 .tab {
     list-style-type: none;
     display: flex;
@@ -66,6 +71,8 @@ li:active {
     margin-top: 10px;
     margin-left: 300px; 
 }
+
+
 h1 {
   color: limegreen;
   text-align: center;
@@ -96,7 +103,6 @@ p {
     <li onclick="showTab('friends')">Friends Activity</li>
   </ul>
   <div class="container">
-      
     </div>
     <div class="right">
       <div class="main">
@@ -126,9 +132,13 @@ p {
         </div>
       </div>
     </div>
+    <div>
+      <div class="nav">
+        <h1>Navigation</h1>
+        <p>This is a sample page about navigation. You can use HTML and CSS to customize it as you like.</p>
+      </div>
+    </div>
   </div>
-  
-  
   
 <script>
 function showTab(tabName) {
