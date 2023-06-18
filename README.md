@@ -1,5 +1,3 @@
-I can help you create a readme file for this project. Based on the current web page context, this is a private repository for a music management web app that you made. Here is a possible readme file that you can edit and customize:
-
 # SPOTIFY Manager
 
 This is a web app that allows you to manage, recommend, and track your music on Spotify. You can create playlists, discover new songs, and see your listening statistics.
