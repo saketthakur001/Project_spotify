@@ -11,8 +11,6 @@ I love listening to music on Spotify, but I wanted to have more features and opt
 - You can get personalized music recommendations based on your listening history and preferences.
 - You can create custom playlists with your own rules and criteria.
 
-How does that sound?😊
-
 ## How it works
 
 This web app uses Python and Flask to connect to the Spotify API and access your music data. It then uses HTML, CSS, and JavaScript to display the results in a user-friendly interface. You can access the web app at https://music-manager.vercel.app/.
