@@ -1,66 +1,74 @@
-/* use this file to style your HTML elements */
-/* you can use classes and ids to target specific elements */
-
-/* set the background color and font for the whole document */
-body {
-  background-color: black;
-  font-family: Arial, sans-serif;
-  color: white;
-}
-
-/* set the width and margin for the container div */
-#container {
-  width: 80%;
-  margin: 0 auto;
-}
-
-/* style the header section */
-header {
-  text-align: center;
-  padding: 20px;
-}
-
-/* style the title and subtitle */
-header h1 {
-  font-size: 3em;
-  color: limegreen;
-}
-
-header p {
-  font-size: 1.2em;
-  color: yellow;
-}
-
-/* style the navigation bar */
-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background-color: darkslategray;
-}
-
-/* style the navigation links */
-nav a {
-  text-decoration: none;
-  color: white;
-  padding: 10px;
-}
-
-/* add a hover effect to the navigation links */
-nav a:hover {
-  background-color: limegreen;
-  color: black;
-}
-
-/* style the main section */
-main {
-  padding: 20px;
-}
-
-/* style the footer section */
-footer {
-  text-align: center;
-  background-color: darkslategray;
-  color: white;
-  padding: 10px;
-}
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #000000;
+  }
+  
+  ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 70px;
+    background-color: #111111; 
+    border-radius: 10px; 
+    margin-bottom: 10px; 
+    margin-top: 10px; /* added this line */
+    margin-left: 300;
+  }
+  
+  li {
+    color: rgb(255, 255, 255);
+    font-size: 20px;
+    background-color: rgb(0, 0, 0);
+    border-radius: 5px;
+    padding: 10px;
+  }
+  
+  li:hover {
+    color: limegreen;
+  }
+  
+  li:active {
+    transform: scale(0.9);
+  }
+  
+  .container {
+    width: 80%;
+    /* margin: auto; */
+  }
+  
+  .tab {
+      list-style-type: none;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      height: calc(100vh - 94px);
+      background-color: #111111;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      margin-top: 10px;
+      margin-left: 300px; 
+  }
+  h1 {
+    color: limegreen;
+    text-align: center;
+  }
+  
+  p {
+    color: white;
+  }
+  
+  
+  .content {
+   display:none;
+  }
+  
+  .content.active {
+   display:block; 
+  }

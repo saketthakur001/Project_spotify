@@ -1,214 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mew-cat</title>
+    <!-- link to your external CSS and JavaScript files here -->
+</head>
 <style>
-/* Use a CSS reset to avoid browser inconsistencies */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* use this file to style your HTML elements */
+/* you can use classes and ids to target specific elements */
 
+/* set the background color and font for the whole document */
 body {
+  background-color: black;
   font-family: Arial, sans-serif;
-  background-color: #000000;
-}
-
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  margin: 10px;
-}
-
-ul {
-  list-style-type: none;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  height: 70px;
-  background-color: #111111; 
-  border-radius: 10px; 
-  margin-bottom: 10px;
-}
-
-li {
-  color: rgb(255, 255, 255);
-  font-size: 20px;
-  background-color: rgb(0, 0, 0);
-  border-radius: 5px;
-  padding: 10px;
-}
-
-li:hover {
-  color: limegreen;
-}
-
-li:active {
-  transform: scale(0.9);
-}
-
-.nav {
-  list-style-type: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh - 174px);
-  width: 250px;
-  background-color: #111111;
-  border-radius: 10px;
-}
-
-/* Use relative units for margins and paddings to make the layout responsive */
-.container .main {
-  display: flex;
-}
-
-.content {
-  display: none;
-}
-
-.content.active {
-  display: block; 
-}
-
-h1 {
-  color: limegreen;
-}
-
-p {
   color: white;
 }
 
-/* Add some styles for the form elements */
-form {
-    display:flex; 
-    flex-direction: column; 
-    align-items:center; 
-    margin-top:20px; 
-    width:auto; 
-    height:auto; 
-    background-color:#111111; 
-    border-radius:10px; 
-    padding-top :20px; 
-    padding-bottom :20px
+/* set the width and margin for the container div */
+#container {
+  width: 80%;
+  margin: 0 auto;
 }
-input[type=text]{
-    width :300px; 
-    height :30px; 
-    border-radius :5px; 
-    border :none
+
+/* style the header section */
+header {
+  text-align: center;
+  padding: 20px;
 }
-input[type=submit]{
-    width :100px; 
-    height :30px; 
-    border-radius :5px; 
-    border :none; 
-    color :white; 
-    background-color :limegreen
+
+/* style the title and subtitle */
+header h1 {
+  font-size: 3em;
+  color: limegreen;
 }
+
+header p {
+  font-size: 1.2em;
+  color: yellow;
+}
+
+/* style the navigation bar */
+nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: darkslategray;
+}
+
+/* style the navigation links */
+nav a {
+  text-decoration: none;
+  color: white;
+  padding: 10px;
+}
+
+/* add a hover effect to the navigation links */
+nav a:hover {
+  background-color: limegreen;
+  color: black;
+}
+
+/* style the main section */
+main {
+  padding: 20px;
+}
+
+/* style the footer section */
+footer {
+  text-align: center;
+  background-color: darkslategray;
+  color: white;
+  padding: 10px;
+}
+
 </style>
-</head>
-
 <body>
-<div class="container">
-<!-- Use semantic elements like <nav> and <section> for better accessibility and SEO -->
-<nav>
-    <ul>
-      <!-- Use data attributes to store the tab name instead of onclick handlers -->
-      <li data-tab="auto">Auto</li>
-      <li data-tab="library">Library</li>
-      <li data-tab="explore">Explore</li>
-      <li data-tab="friends">Friends Activity</li>
-    </ul>
-</nav>
-<main class="main">
-    <aside class="nav">
-      <h1>Navigation</h1>
-      <p>This is a sample page about navigation. You can use HTML and CSS to customize it as you like.</p>
-    </aside>
-    <section class="right">
-      <div class="main">
-        <!-- Use semantic elements like <article> for each tab content -->
-        <article id="auto" class="content active">
-          <div class="tab">
-            <h1>Auto</h1>
-            <p>This is a sample page about auto. You can use HTML and CSS to customize it as you like.</p>
-          </div>
-        </article>
-        <article id="library" class="content">
-          <div class="tab">
-            <h1>Library</h1>
-            <p>This is a sample page about library. You can use HTML and CSS to customize it as you like.</p>
-          </div>
-        </article>
-        <article id="explore" class="content">
-          <div class="tab">
-            <h1>Explore</h1>
-            <p>This is a sample page about explore. You can use HTML and CSS to customize it as you like.</p>
-          </div>
-        </article>
-        <!-- Add a form element inside the friends activity article -->
-        <article id="friends" class="content">
-          <div class="tab">
-            <h1>Friends Activity</h1>
-            <form id="friends-form" method="GET" action="/top_tracks">
-              <!-- Add input elements for the query parameters -->
-              <label for="user_id">User ID:</label>
-              <input type="text" id="user_id" name="user_id" placeholder="Enter user ID or comma-separated list of IDs">
-              <label for="time_period">Time Period:</label>
-              <input type="text" id="time_period" name="time_period" placeholder="Enter start-end or >start or <end">
-              <label for="by_artist_uri">By Artist URI:</label>
-              <input type="text" id="by_artist_uri" name="by_artist_uri" placeholder="Enter artist URI or comma-separated list of URIs">
-              <label for="by_album_uri">By Album URI:</label>
-              <input type="text" id="by_album_uri" name="by_album_uri" placeholder="Enter album URI or comma-separated list of URIs">
-              <label for="limit">Limit:</label>
-              <input type="text" id="limit" name="limit" placeholder="Enter limit value">
-              <!-- Add a submit button -->
-              <input type="submit" value="Submit">
-            </form>
-          </div>
-        </article>
-      </div>
-    </section>
-</main>  
-</div>
-
-
-<script>
-
-// Use event delegation to handle the tab clicks
-document.addEventListener("click", function(event) {
-  
- // Check if the clicked element is a list item
- if (event.target.tagName === "LI") {
-
-   // Get the tab name from the data attribute
-   var tabName = event.target.dataset.tab;
-
-   // Call the showTab function with the tab name
-   showTab(tabName);
- }
-});
-
-function showTab(tabName) {
-  
- // Get all the content elements
- var tabs = document.getElementsByClassName("content");
- 
- // Loop through them and remove the active class
- for (var i = 0; i < tabs.length; i++) {
-   tabs[i].classList.remove("active");
- }
- 
- // Get the content element with the matching id
- var tab = document.getElementById(tabName);
- 
- // Add the active class to it
- tab.classList.add("active");
-}
-</script>
+    <div id="container">
+        <header>
+            <h1>mew-cat</h1>
+            <p>This is a web app that allows you to manage, recommend, and track your music on Spotify.</p>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Top Songs</a></li>
+                <li><a href="#">Top Artists</a></li>
+                <li><a href="#">Top Genres</a></li>
+                <li><a href="#">Recommendations</a></li>
+                <li><a href="#">Playlists</a></li>
+                <li><a href="#">Statistics</a></li>
+                <li><a href="#">Friends</a></li>
+            </ul>
+        </nav>
+        <main>
+            <!-- this is where you display the content of each page -->
+            <!-- for example, for the top songs page, you can use a table or a list to show the songs and their details -->
+            <!-- you can also use a calendar input to let the user choose the time period -->
+            <!-- you can use JavaScript to dynamically update the content based on the user's input -->
+        </main>
+        <footer>
+            <p>Created by mew-cat using Spotify API.</p>
+        </footer>
+    </div>
 </body>
 </html>
+
