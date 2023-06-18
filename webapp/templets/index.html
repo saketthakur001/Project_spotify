@@ -4,77 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>mew-cat</title>
-    <!-- link to your external CSS and JavaScript files here -->
+    <link rel="stylesheet" href="../static/style.css">
 </head>
-<style>
-/* use this file to style your HTML elements */
-/* you can use classes and ids to target specific elements */
-
-/* set the background color and font for the whole document */
-body {
-  background-color: black;
-  font-family: Arial, sans-serif;
-  color: white;
-}
-
-/* set the width and margin for the container div */
-#container {
-  width: 80%;
-  margin: 0 auto;
-}
-
-/* style the header section */
-header {
-  text-align: center;
-  padding: 20px;
-}
-
-/* style the title and subtitle */
-header h1 {
-  font-size: 3em;
-  color: limegreen;
-}
-
-header p {
-  font-size: 1.2em;
-  color: yellow;
-}
-
-/* style the navigation bar */
-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background-color: darkslategray;
-}
-
-/* style the navigation links */
-nav a {
-  text-decoration: none;
-  color: white;
-  padding: 10px;
-}
-
-/* add a hover effect to the navigation links */
-nav a:hover {
-  background-color: limegreen;
-  color: black;
-}
-
-/* style the main section */
-main {
-  padding: 20px;
-}
-
-/* style the footer section */
-footer {
-  text-align: center;
-  background-color: darkslategray;
-  color: white;
-  padding: 10px;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- add some meta information about your web app -->
+    <meta name="author" content="mew-cat">
+    <meta name="description" content="A web app that allows you to manage, recommend, and track your music on Spotify.">
+    <meta name="keywords" content="music, spotify, web app">
+    <title>mew-cat</title>
+    <!-- link to your external CSS and JavaScript files here -->
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
 <body>
     <div id="container">
         <header>
@@ -98,6 +40,67 @@ footer {
             <!-- for example, for the top songs page, you can use a table or a list to show the songs and their details -->
             <!-- you can also use a calendar input to let the user choose the time period -->
             <!-- you can use JavaScript to dynamically update the content based on the user's input -->
+            <!-- this is just a sample page for the top songs feature -->
+            <div id="header">
+                <h2>Top Songs</h2>
+                <p>These are your top 100 songs for the selected time period.</p>
+            </div>
+            <div id="sidebar">
+                <label for="calendar">Choose a time period:</label>
+                <input type="date" id="calendar" name="calendar">
+                <button id="submit">Submit</button>
+            </div>
+            <div id="content">
+                <!-- this is where you display the table or list of songs -->
+                <!-- you can use either a table or a list, depending on your preference and design -->
+                <!-- this is an example of a table -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Artist</th>
+                            <th>Album</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- this is where you loop through the songs and create a row for each one -->
+                        <!-- you can use JavaScript to fetch the data from the Spotify API and populate the table -->
+                        <!-- this is just a sample row with some dummy data -->
+                        <tr>
+                            <td>Bad Habits</td>
+                            <td>Ed Sheeran</td>
+                            <!-- you can use an image tag to display the album cover -->
+                            <!-- you can also use a link tag to open the album on Spotify -->
+                            <td><a href="#"><img src="bad-habits.jpg" alt="Album cover of Bad Habits by Ed Sheeran"></a></td>
+                            <!-- you can format the duration in minutes and seconds using JavaScript -->
+                            <td>3:51</td>
+                        </tr>
+                        <!-- repeat for other songs -->
+                    </tbody>
+                </table>
+
+                <!-- this is an example of a list -->
+                <!-- uncomment this section if you prefer to use a list instead of a table -->
+
+                <!--
+                <ul>
+                    this is where you loop through the songs and create a list item for each one
+                    you can use JavaScript to fetch the data from the Spotify API and populate the list
+                    this is just a sample list item with some dummy data
+                    <li><span class="name">Bad Habits</span> by 
+                    you can use an image tag to display the artist photo
+                    you can also use a link tag to open the artist on Spotify
+                    <a href="#"><img src="ed-sheeran.jpg" alt="Photo of Ed Sheeran"></a> from 
+                    you can use an image tag to display the album cover
+                    you can also use a link tag to open the album on Spotify
+                    <a href="#"><img src="bad-habits.jpg" alt="Album cover of Bad Habits by Ed Sheeran"></a> 
+                    you can format the duration in minutes and seconds using JavaScript
+                    (<span class="duration">3:51</span>)</li>
+                    repeat for other songs
+                </ul>
+                -->
+            </div>
         </main>
         <footer>
             <p>Created by mew-cat using Spotify API.</p>
