@@ -6,6 +6,13 @@ This is a web app that allows you to manage, recommend, and track your music on 
 
 I love listening to music on Spotify, but I wanted to have more features and options to enhance my experience. I wanted to be able to organize my music better, get personalized recommendations, and see how my music tastes change over time.
 
+## Features
+- You can get your top 100 songs for any time period you choose, such as weekly, monthly, or yearly.
+- You can get personalized music recommendations based on your listening history and preferences.
+- You can create custom playlists with your own rules and criteria.
+
+How does that sound?😊
+
 ## How it works
 
 This web app uses Python and Flask to connect to the Spotify API and access your music data. It then uses HTML, CSS, and JavaScript to display the results in a user-friendly interface. You can access the web app at https://music-manager.vercel.app/.
