@@ -1130,7 +1130,7 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
     '''
 
     # connect to the database with the given name or create a new one if it does not exist
-    conn = sqlite3.connect(database_name)
+    conn = sqlite3.connect(database_name, check_same_thread=False)
     cur = conn.cursor()
 
     # create a table for users with columns for user_id, user_url, user_name and user_image_url
@@ -1345,7 +1345,7 @@ class FriendActivityAnaliser:
         self.database_name = database_name
         # try to connect to the database and create a cursor object
         try:
-            self.conn = sqlite3.connect(self.database_name)
+            self.conn = sqlite3.connect(self.database_name, check_same_thread=False)
             self.cur = self.conn.cursor()
             print(f"Connected to {self.database_name} successfully.")
         except sqlite3.Error as e:
@@ -1655,7 +1655,7 @@ class FriendActivityAnaliser:
 # define a function that takes a user_id as an argument and returns all the details about that user from the database
 def get_user_details(user_id):
     # connect to the database
-    conn = sqlite3.connect('friends_activity.db')
+    conn = sqlite3.connect('friends_activity.db', check_same_thread=False)
     cur = conn.cursor()
     # create an empty dictionary to store the user details
     user_details = {}
@@ -1729,7 +1729,7 @@ from datetime import datetime
 # define a function that takes a number as a parameter and prints the last n songs by each user and the songs in details with all the correct labels
 def print_last_played_songs(n):
     # connect to the database
-    conn = sqlite3.connect('friends_activity.db')
+    conn = sqlite3.connect('friends_activity.db', check_same_thread=False)
     cur = conn.cursor()
     # query the users table for all the user_ids and user_names
     cur.execute("SELECT user_id, user_name FROM users")
@@ -1821,7 +1821,7 @@ def store_my_streaming_data_to_database(database_name='MyStreamingHistory.db'):
     '''
 
     # connect to the database with the given name or create a new one if it does not exist
-    conn = sqlite3.connect(database_name)
+    conn = sqlite3.connect(database_name, check_same_thread=False)
     cur = conn.cursor()
 
     # create a table for albums with columns for album_id, album_uri, album_name, album_type, release_date, total_tracks and image_url
@@ -1979,7 +1979,7 @@ class MyStreamingAnalysis:
         self.database_name = database_name
         # try to connect to the database and create a cursor object
         try:
-            self.conn = sqlite3.connect(self.database_name)
+            self.conn = sqlite3.connect(self.database_name, check_same_thread=False)
             self.cur = self.conn.cursor()
             print(f"Connected to {self.database_name} successfully.")
         except sqlite3.Error as e:

@@ -1,3 +1,6 @@
+/* use strict mode to avoid common errors and enforce best practices */
+/* "use strict"; */
+
 /* use a universal selector to apply box-sizing to all elements */
 * {
   box-sizing: border-box;
@@ -5,9 +8,22 @@
   padding: 0;
 }
 
+/* use variables to store and reuse common values such as colors, fonts, sizes, etc. */
+:root {
+  --black: #000000;
+  --white: #ffffff;
+  --limegreen: limegreen;
+  --limeyellow: limeyellow;
+  --pink: pink;
+  --font-family: Arial, sans-serif;
+  --font-size: 1rem; /* use rem for font sizes */
+  --container-width: 80vw; /* use vw for widths */
+  --nav-height: 10vh; /* use vh for heights */
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #000000;
+  font-family: var(--font-family);
+  background-color: var(--black);
 }
 
 ul {
@@ -15,25 +31,23 @@ ul {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  height: 70px;
+  height: var(--nav-height);
   background-color: #111111; 
   border-radius: 10px; 
   margin-bottom: 10px; 
-  margin-top: 10px; /* added this line */
-  /* use a unit for margin-left, such as px or % */
-  margin-left: 300px; /* fixed this line */
+  margin-top: 10px; 
 }
 
 li {
-  color: rgb(255, 255, 255);
-  font-size: 20px;
-  background-color: rgb(0, 0, 0);
+  color: var(--white);
+  font-size: var(--font-size);
+  background-color: var(--black);
   border-radius: 5px;
   padding: 10px;
 }
 
 li:hover {
-  color: limegreen;
+  color: var(--limegreen);
 }
 
 li:active {
@@ -41,8 +55,7 @@ li:active {
 }
 
 .container {
-  width: 80%;
-  /* margin: auto; */
+  width: var(--container-width);
 }
 
 .tab {
@@ -50,21 +63,20 @@ li:active {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    height: calc(100vh - 94px);
+    height: calc(100vh - var(--nav-height) - 20px); /* use calc to subtract the nav height and margins from the viewport height */
     background-color: #111111;
     border-radius: 10px;
     margin-bottom: 10px;
-    margin-top: 10px;
-    margin-left: 300px; 
+    margin-top: 10px; 
 }
 
 h1 {
-  color: limegreen;
+  color: var(--limegreen);
   text-align: center;
 }
 
 p {
-  color: white;
+  color: var(--white);
 }
 
 
@@ -74,4 +86,68 @@ p {
 
 .content.active {
  display:block; 
+}
+
+/* use media queries to make your web app responsive and adaptive to different screen sizes and orientations */
+@media screen and (max-width:768px) { /* apply these styles when the screen width is less than or equal to 768px */
+  
+   ul {
+     flex-direction: column; /* stack the nav items vertically instead of horizontally */
+     height:auto; /* adjust the height according to the content */
+   }
+
+   li {
+     width:80%; /* make the nav items wider */
+     margin-bottom:5px; /* add some space between the nav items */
+   }
+
+   .tab {
+     flex-direction: column; /* stack the tab items vertically instead of horizontally */
+     height:auto; /* adjust the height according to the content */
+   }
+
+   .song-article {
+     display:flex; /* make the song articles display as flex items */
+     flex-wrap:wrap; /* allow the song articles to wrap into multiple lines if needed */
+   }
+
+   .song-header {
+     width:100%; /* make the song header take up the full width of the song article */
+   }
+
+   .song-details {
+     width:auto; /* adjust the width of the song details according to the content */
+   }
+}
+
+@media screen and (orientation:portrait) { /* apply these styles when the screen orientation is portrait */
+
+   h1 {
+     font-size:1.2rem; /* increase the font size of the h1 element */
+   }
+
+   p {
+     font-size:.8rem; /* decrease the font size of the p element */
+   }
+}
+
+/* use neon colors in CSS by using bright colors with a text-shadow property that creates a glowing effect */
+
+.neon-text {
+    color:white; /* set the text color to white */
+    text-shadow:
+      -0.2rem -0.2rem .5rem limegreen, /* create a green glow around the text with an offset and a blur radius */
+      inset -0.2rem -0.2rem .5rem limegreen; /* create an inner glow with an inset value */
+}
+
+/* you can also use multiple text-shadows to create a more complex neon effect */
+
+.neon-text-2 {
+    color:white; /* set the text color to white */
+    text-shadow:
+      0 0 .5rem limegreen, /* create a green glow around the text with no offset and a blur radius */
+      0 0 1rem limegreen, /* create a larger green glow around the text with no offset and a bigger blur radius */
+      0 0 2rem limegreen, /* create an even larger green glow around the text with no offset and an even bigger blur radius */
+      0 0 3rem limegreen, /* create the largest green glow around the text with no offset and the largest blur radius */
+      inset -0.2rem -0.2rem .5rem limegreen; /* create an inner glow with an inset value */
 }
