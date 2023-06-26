@@ -122,6 +122,107 @@
       transform-origin: center center;
     }
 
+     /* Add this style for the sidebar toggle button */
+     .toggle-button {
+       position:absolute; 
+       top:.75rem; 
+       left:.75rem; 
+       width:.75rem; 
+       height:.75rem; 
+       cursor:pointer; 
+       z-index :10000
+     }
+     
+     /* Add this style for the horizontal lines */
+     .toggle-button span { 
+       display:block; 
+       width:.75rem; 
+       height:.125rem; 
+       background:#fff; 
+       position:absolute; 
+       left :0; 
+       transition:.5s
+     }
+     
+     /* Add this style for the horizontal lines position */
+     .toggle-button span:nth-child(1) { top :0 }
+     .toggle-button span:nth-child(2) { top :.25rem }
+     .toggle-button span:nth-child(3) { top :.5rem }
+     
+     /* Add this style for the horizontal lines animation */
+     .toggle-button.active span:nth-child(1) { top :.25rem; transform :rotate(135deg) }
+     .toggle-button.active span:nth-child(2) { opacity :0 }
+     .toggle-button.active span:nth-child(3) { top :.25rem; transform :rotate(-135deg) }
+
+
+    
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
     @media screen and (max-width: 768px) {
       nav ul li {
         display: block;
@@ -163,6 +264,13 @@
     </nav>
   </header>
   <div class="container">
+    <!-- Add this div for the sidebar toggle button -->
+    <div class="toggle-button" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
     <div class="sidebar">
       <!-- ... -->
     </div>
@@ -187,6 +295,15 @@
   </div>
 
   <script>
+
+     // Add this function to toggle the sidebar
+     function toggleSidebar() {
+       var sidebar = document.querySelector(".sidebar");
+       var toggleButton = document.querySelector(".toggle-button");
+       sidebar.classList.toggle("active");
+       toggleButton.classList.toggle("active");
+     }
+
     function showHome() {
       hideAllSections();
       document.getElementById("home").style.display = "block";
@@ -221,3 +338,4 @@
   </script>
 </body>
 </html>
+
