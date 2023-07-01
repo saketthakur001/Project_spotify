@@ -1,3 +1,4 @@
+
 # USING SELENIUM VERSION 4
 
 # Import the selenium webdriver module
@@ -8,6 +9,10 @@ from selenium.webdriver.chrome.options import Options as chromeOptions
 from selenium.webdriver.common.by import By
 # Import the NoSuchElementException class
 from selenium.common.exceptions import NoSuchElementException
+# Import the WebDriverWait class
+from selenium.webdriver.support.ui import WebDriverWait
+# Import the expected_conditions module
+from selenium.webdriver.support import expected_conditions as EC
 
 
 # time
@@ -63,7 +68,6 @@ def click_first_link(driver):
     # If no element is found, return False
     return False
 
-
 def click_heart(driver, value):
   """Clicks on the heart based on a given value."""
   # Check if the value is between 1 and 10
@@ -76,8 +80,8 @@ def click_heart(driver, value):
     li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
     # Click on the li element
     li_element.click()
-    # Wait for the popup to be visible using expected conditions
-    popup = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "popover")))
+    print('clicked on the "rate this movie"')
+    time.sleep(1)
     # Find the input element that has the name "rating" and the value equal to the given value using XPath
     input_element = driver.find_element(By.XPATH, f"//input[@name='rating' and @value='{value}']")
     # Click on the input element
@@ -86,6 +90,8 @@ def click_heart(driver, value):
   except NoSuchElementException:
     # If the element is not found, return False
     return False
+
+
 
 
 
@@ -113,9 +119,9 @@ for i in df['title'][0]:
     driver.get("https://trakt.tv/movies/toy-story-5")
     # Find the element by its text content using XPath
     try:
-        element = driver.find_element(By.XPATH, "//div[contains(text(), 'Add to history')]")
+        # element = driver.find_element(By.XPATH, "//div[contains(text(), 'Add to history')]")
         # Click on the element
-        element.click()
+        # element.click()
         # Find the li element that has the class name "summary-user-rating" using the class name locator
         li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
         # Click on the li element
