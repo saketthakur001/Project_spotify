@@ -14,6 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 # Import the expected_conditions module
 from selenium.webdriver.support import expected_conditions as EC
 
+import re
 
 # time
 import time
@@ -52,7 +53,7 @@ def find_elements_by_class_name(driver, class_name):
 def click_first_link(driver):
   """Clicks on the first link element on the page."""
   # Wait for the page to load and the element to be present
-  driver.implicitly_wait(3)
+  driver.implicitly_wait(1)
   
   # Use a try-except block to handle possible exceptions
   try:
@@ -68,41 +69,76 @@ def click_first_link(driver):
     # If no element is found, return False
     return False
 
-def click_heart(driver, value):
-  """Clicks on the heart based on a given value."""
+
+def click_element(element):
+    element.click()
+    print(f"Successfully clicked element using {element.description}")
+
+
+# Define a function to click on the element using a given locator
+def click_heart(driver, value, locator):
+  """Clicks on the heart based on a given value and a locator."""
   # Check if the value is between 1 and 10
   if not 1 <= value <= 10:
     raise ValueError("Value must be between 1 and 10")
-  
-  # Use a try-except block to handle possible exceptions
+  # Use a try-except-else-finally block to handle possible exceptions
   try:
-    # Find the li element that has the class name "summary-user-rating" using the class name locator
-    li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
-    # Click on the li element
-    li_element.click()
-    print('clicked on the "rate this movie"')
-    time.sleep(1)
-    # Find the input element that has the name "rating" and the value equal to the given value using XPath
-    input_element = driver.find_element(By.XPATH, f"//input[@name='rating' and @value='{value}']")
-    # Click on the input element
-    input_element.click()
-    return True
+    # Choose different locators based on the locator parameter
+    if locator == "id":
+      # Find and click the element by id using the value parameter
+      element = driver.find_element(By.ID, f"rating-{value}-1688233989567")
+    elif locator == "xpath":
+      # Find and click the element by xpath using the value parameter
+      element = driver.find_element(By.XPATH, f"//input[@name='rating' and @value='{value}']")
+    elif locator == "css selector":
+      # Find and click the element by css selector using the value parameter
+      element = driver.find_element(By.CSS_SELECTOR, f"input[name='rating'][value='{value}']")
+    elif locator == "link text":
+      # Find and click the element by link text using the value parameter
+      element = driver.find_element(By.LINK_TEXT, f"{value} hearts")
+    elif locator == "partial link text":
+      # Find and click the element by partial link text using the value parameter
+      element = driver.find_element(By.PARTIAL_LINK_TEXT, f"{value} hearts")
+    elif locator == "class name":
+      # Find and click the element by class name using the value parameter
+      element = driver.find_element(By.CLASS_NAME, f"rating-{value}")
+    else:
+      # Raise an exception if the locator is not valid
+      raise ValueError("Locator must be one of: id, xpath, css selector, link text, partial link text, class name")
+
+    # Click on the element
+    element.click()
   except NoSuchElementException:
-    # If the element is not found, return False
-    return False
-
-
-
+    # Handle the case when the element is not found
+    print(f"Element not found by {locator}")
+  else:
+    # Handle the case when the element is clicked successfully
+    print(f"Element clicked by {locator}")
+  finally:
+    # Execute some code regardless of the outcome
+    print(f"Finished trying to click by {locator}")
+  
+  return True
 
 
 # Assuming the file name is movies.csv
 import pandas as pd
+# time.sleep(1000)
 df = pd.read_csv(r"C:\Users\saket\Downloads\movielens-ratings.csv")
 
-for i in df['title'][0]:
-    # search = 'site:trakt.tv '+i
-    # driver.get(generate_google_link(search))
+for idx, title in enumerate(df['title'][79:]):
+    title = title.replace("'", '-').replace('.', '-')
+    print(title)
     
+    formatted_title = re.sub(r'[^\w\s.-]', '', title).strip().lower().replace(' ', '-').replace('--', '-')
+    
+    url = f"https://trakt.tv/movies/{formatted_title}"
+    print(url)
+
+    print("Index:", idx)
+    print("-------------------------")
+    driver.get(url)
+
     # Call the click_first_link function and store the result in a variable
     # clicked = click_first_link(driver)
 
@@ -110,40 +146,54 @@ for i in df['title'][0]:
     # if clicked:
     #     print(f"Link found for {i}")
 
-    #     break
+    #     # break
     # else:
     #     # If clicked is False, print a message and continue the loop
     #     print(f"No link found for {i}")
     #     continue
 
-    driver.get("https://trakt.tv/movies/toy-story-5")
+    # driver.get("https://trakt.tv/movies/toy-story-5")
     # Find the element by its text content using XPath
     try:
-        # element = driver.find_element(By.XPATH, "//div[contains(text(), 'Add to history')]")
+        element = driver.find_element(By.XPATH, "//div[contains(text(), 'Add to history')]")
         # Click on the element
-        # element.click()
+        element.click()
         # Find the li element that has the class name "summary-user-rating" using the class name locator
-        li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
+        # li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
         # Click on the li element
         # print('clicked')
         # time.sleep(10)
         # li_element.click()
         # Call the click_heart function with the desired value
         # click_heart(driver, 8) # for example
-        click_heart(driver, 5)
+        # click_heart(driver, 5)
+        # try:
+        # Find the li element that has the class name "summary-user-rating" using the class name locator
+        # li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
+        # # Click on the li element
+        # li_element.click()
+        # print('clicked on the "rate this movie"')
+        # time.sleep(2)
+        # except:
+            # print('you are fucked')
+        # click_heart(driver, 5, "id")
+        # click_heart(driver, 5, "xpath")
+        # click_heart(driver, 5, "css selector")
+        # click_heart(driver, 5, "link text")
+        # click_heart(driver, 5, "partial link text")
+        # click_heart(driver, 5, "class name")
+        print('added a new movie', df.index)
     except NoSuchElementException:
     # If the element is not found, pass
-        # pass
-        print('sleeping')
-        time.sleep(10)
-        break
-    break
+        pass
+        # print('sleeping')
+        # time.sleep(10)
 
 
 # Get the title of the page
 print(driver.title)
 
-time.sleep(60000)
+# time.sleep(60000)
 
 # Close the driver
 driver.close()
