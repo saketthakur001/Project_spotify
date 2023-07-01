@@ -17,15 +17,18 @@ import time
 options = webdriver.ChromeOptions()
 
 # Use the default profile name in the user-data-dir argument
-options.add_argument("--user-data-dir=C:\\Users\\saket\\AppData\\Local\\Google\\Chrome\\User Data")
+# options.add_argument("--user-data-dir=C:\\Users\\saket\\AppData\\Local\\Google\\Chrome\\User Data")
 
-# options.add_argument("--user-data-dir=C:\\Temp\\ChromeProfile")
+options.add_argument("--user-data-dir=C:\\Temp\\ChromeProfile")
 
 # Create a webdriver object for chrome with the options
 driver = webdriver.Chrome(options=options)
 
 # Open the google.com website
 # driver.get("https://trakt.tv/dashboard")
+
+
+''' GOOGLE SEARCH AND CLICKING ON THE FIRST LINK '''
 
 # Assuming the search text is a string
 def generate_google_link(search_text):
@@ -61,11 +64,36 @@ def click_first_link(driver):
     return False
 
 
+def click_heart(driver, value):
+  """Clicks on the heart based on a given value."""
+  # Check if the value is between 1 and 10
+  if not 1 <= value <= 10:
+    raise ValueError("Value must be between 1 and 10")
+  
+  # Use a try-except block to handle possible exceptions
+  try:
+    # Find the li element that has the class name "summary-user-rating" using the class name locator
+    li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
+    # Click on the li element
+    li_element.click()
+    # Wait for the popup to be visible using expected conditions
+    popup = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "popover")))
+    # Find the input element that has the name "rating" and the value equal to the given value using XPath
+    input_element = driver.find_element(By.XPATH, f"//input[@name='rating' and @value='{value}']")
+    # Click on the input element
+    input_element.click()
+    return True
+  except NoSuchElementException:
+    # If the element is not found, return False
+    return False
+
+
+
 # Assuming the file name is movies.csv
 import pandas as pd
 df = pd.read_csv(r"C:\Users\saket\Downloads\movielens-ratings.csv")
 
-for i in df['title']:
+for i in df['title'][0]:
     # search = 'site:trakt.tv '+i
     # driver.get(generate_google_link(search))
     
@@ -88,10 +116,22 @@ for i in df['title']:
         element = driver.find_element(By.XPATH, "//div[contains(text(), 'Add to history')]")
         # Click on the element
         element.click()
+        # Find the li element that has the class name "summary-user-rating" using the class name locator
+        li_element = driver.find_element(By.CLASS_NAME, "summary-user-rating")
+        # Click on the li element
+        # print('clicked')
+        # time.sleep(10)
+        # li_element.click()
+        # Call the click_heart function with the desired value
+        # click_heart(driver, 8) # for example
+        click_heart(driver, 5)
     except NoSuchElementException:
     # If the element is not found, pass
-        pass
-
+        # pass
+        print('sleeping')
+        time.sleep(10)
+        break
+    break
 
 
 # Get the title of the page
