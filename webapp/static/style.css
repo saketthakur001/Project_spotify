@@ -1,153 +1,161 @@
-/* use strict mode to avoid common errors and enforce best practices */
-/* "use strict"; */
-
-/* use a universal selector to apply box-sizing to all elements */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* use variables to store and reuse common values such as colors, fonts, sizes, etc. */
-:root {
-  --black: #000000;
-  --white: #ffffff;
-  --limegreen: limegreen;
-  --limeyellow: limeyellow;
-  --pink: pink;
-  --font-family: Arial, sans-serif;
-  --font-size: 1rem; /* use rem for font sizes */
-  --container-width: 80vw; /* use vw for widths */
-  --nav-height: 10vh; /* use vh for heights */
-}
-
-body {
-  font-family: var(--font-family);
-  background-color: var(--black);
-}
-
-ul {
-  list-style-type: none;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  height: var(--nav-height);
-  background-color: #111111; 
-  border-radius: 10px; 
-  margin-bottom: 10px; 
-  margin-top: 10px; 
-}
-
-li {
-  color: var(--white);
-  font-size: var(--font-size);
-  background-color: var(--black);
-  border-radius: 5px;
-  padding: 10px;
-}
-
-li:hover {
-  color: var(--limegreen);
-}
-
-li:active {
-  transform: scale(0.9);
-}
-
-.container {
-  width: var(--container-width);
-}
-
-.tab {
-    list-style-type: none;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    height: calc(100vh - var(--nav-height) - 20px); /* use calc to subtract the nav height and margins from the viewport height */
-    background-color: #111111;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    margin-top: 10px; 
-}
-
-h1 {
-  color: var(--limegreen);
-  text-align: center;
-}
-
-p {
-  color: var(--white);
-}
-
-
-.content {
- display:none;
-}
-
-.content.active {
- display:block; 
-}
-
-/* use media queries to make your web app responsive and adaptive to different screen sizes and orientations */
-@media screen and (max-width:768px) { /* apply these styles when the screen width is less than or equal to 768px */
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
   
-   ul {
-     flex-direction: column; /* stack the nav items vertically instead of horizontally */
-     height:auto; /* adjust the height according to the content */
-   }
-
-   li {
-     width:80%; /* make the nav items wider */
-     margin-bottom:5px; /* add some space between the nav items */
-   }
-
-   .tab {
-     flex-direction: column; /* stack the tab items vertically instead of horizontally */
-     height:auto; /* adjust the height according to the content */
-   }
-
-   .song-article {
-     display:flex; /* make the song articles display as flex items */
-     flex-wrap:wrap; /* allow the song articles to wrap into multiple lines if needed */
-   }
-
-   .song-header {
-     width:100%; /* make the song header take up the full width of the song article */
-   }
-
-   .song-details {
-     width:auto; /* adjust the width of the song details according to the content */
-   }
-}
-
-@media screen and (orientation:portrait) { /* apply these styles when the screen orientation is portrait */
-
-   h1 {
-     font-size:1.2rem; /* increase the font size of the h1 element */
-   }
-
-   p {
-     font-size:.8rem; /* decrease the font size of the p element */
-   }
-}
-
-/* use neon colors in CSS by using bright colors with a text-shadow property that creates a glowing effect */
-
-.neon-text {
-    color:white; /* set the text color to white */
-    text-shadow:
-      -0.2rem -0.2rem .5rem limegreen, /* create a green glow around the text with an offset and a blur radius */
-      inset -0.2rem -0.2rem .5rem limegreen; /* create an inner glow with an inset value */
-}
-
-/* you can also use multiple text-shadows to create a more complex neon effect */
-
-.neon-text-2 {
-    color:white; /* set the text color to white */
-    text-shadow:
-      0 0 .5rem limegreen, /* create a green glow around the text with no offset and a blur radius */
-      0 0 1rem limegreen, /* create a larger green glow around the text with no offset and a bigger blur radius */
-      0 0 2rem limegreen, /* create an even larger green glow around the text with no offset and an even bigger blur radius */
-      0 0 3rem limegreen, /* create the largest green glow around the text with no offset and the largest blur radius */
-      inset -0.2rem -0.2rem .5rem limegreen; /* create an inner glow with an inset value */
-}
+  :root {
+    --border-radius: 5px;
+    --default-background-color: #000;
+    --default-foreground-color: rgb(34, 34, 34);
+    --default-margin-length: 0.7rem;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: var(--default-background-color);
+    color: #fff;
+  }
+  
+  .title {
+    margin: 1rem;
+    padding: 0.5rem;
+    text-align: center;
+  }
+  
+  header {
+    background-color: var(--default-foreground-color);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: var(--default-margin-length);
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+    /* margin: 0; */
+    color: #1DB954;
+  }
+  
+  nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  nav ul li {
+    display: inline-block;
+    margin-right: 1rem;
+  }
+  
+  nav ul li a {
+    color: #000000;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 3px;
+    background-color: #1DB954;  
+    transition: background-color 0.3s ease;
+  }
+  
+  nav ul li a:hover {
+    background-color: #0A804E;
+  }
+  
+  .container {
+    min-height: 78vh;
+    display: flex;
+  }
+  
+  .sidebar {
+    width: 3%; /* Changed default width to collapsed state */
+    background-color: var(--default-foreground-color);
+    padding: var(--default-margin-length);
+    margin-right: var(--default-margin-length);
+    margin-bottom: var(--default-margin-length);
+    border-radius: var(--border-radius);
+    transition: width 0.3s ease;
+  }
+  
+  .content {
+    flex-grow: 1;
+    padding: var(--default-margin-length);
+    background-color: var(--default-foreground-color);
+    margin-bottom: var(--default-margin-length);
+    border-radius: var(--border-radius);
+    text-align: center;
+    transition: margin-left 0.3s ease;
+  }
+  
+  .sidebar-hidden {
+    width: 20%; /* Adjusted width for expanded state */
+  }
+  
+  .content.sidebar-hidden {
+    margin-left: 0;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    color: #1DB954;
+  }
+  
+  .toggle-button {
+    position: absolute;
+    top: 10rem;
+    left: 1rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    cursor: pointer;
+    z-index: 10000;
+  }
+  
+  .toggle-button span {
+    display: block;
+    width: 100%;
+    height: 0.125rem;
+    background: #fff;
+    position: absolute;
+    left: 0;
+    transition: 0.5s;
+  }
+  
+  .toggle-button span:nth-child(1) {
+    top: 0.25rem;
+    transform: rotate(-45deg); /* Changed rotation direction */
+  }
+  
+  .toggle-button span:nth-child(2) {
+    top: 0.25rem;
+    opacity: 0;
+  }
+  
+  .toggle-button span:nth-child(3) {
+    top: 0.25rem;
+    transform: rotate(45deg); /* Changed rotation direction */
+  }
+  
+  .toggle-button.active span:nth-child(1) {
+    top: 0;
+    transform: rotate(0); /* Reset rotation to default */
+  }
+  
+  .toggle-button.active span:nth-child(2) {
+      top: .25rem; 
+      opacity :1; 
+  }
+  
+  .toggle-button.active span:nth-child(3) {
+      top : .5rem; 
+      transform : rotate(0); /* Reset rotation to default */
+  }
+  
+  @media screen and (max-width :768px) {
+      nav ul li { 
+          display : block; 
+          margin-bottom : .5rem; 
+      }
+  
+      .button { 
+          width :80%; 
+      }
+  }
+  
