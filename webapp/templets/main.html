@@ -10,239 +10,180 @@
       margin: 0;
       padding: 0;
     }
-
     :root {
       --border-radius: 5px;
       --default-background-color: #000;
       --default-foreground-color: rgb(34, 34, 34);
-      --default-margin-length: .7rem
+      --default-margin-length: .7rem;
     }
-
     body {
       font-family: Arial, sans-serif;
       background-color: var(--default-background-color);
       color: #fff;
     }
-
     .title {
       margin: 1rem;
       padding: 0.5rem;
       text-align: center;
     }
-
     header {
       background-color: var(--default-foreground-color);
       padding: 1rem;
       border-radius: var(--border-radius);
       margin-bottom: var(--default-margin-length);
     }
-
     h1 {
       font-size: 2rem;
       margin: 0;
       color: #1DB954;
     }
-
     nav ul {
       list-style-type: none;
       padding: 0;
       margin: 0;
     }
-
     nav ul li {
       display: inline-block;
       margin-right: 1rem;
     }
-
     nav ul li a {
       color: #fff;
       text-decoration: none;
     }
-
     .container {
       min-height: 78vh;
       display: flex;
     }
-
     .sidebar {
       width: 20%;
       background-color: var(--default-foreground-color);
       padding: var(--default-margin-length);
       margin-right: var(--default-margin-length);
       margin-bottom: var(--default-margin-length);
-      /* margin-left: .5rem; */
       border-radius: var(--border-radius);
+      /* Add these styles for the sidebar transition and position */
+      transition: width .3s ease-in-out;
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      /* Add these styles for the sidebar when it is hidden */
     }
-
+    .sidebar.hide {
+      width: 0;
+      margin-right: 0;
+    }
+    /* Add these styles for the container when the sidebar is hidden */
+    .container.hide {
+      margin-left: 0;
+    }
+    /* Add these styles for the content when the sidebar is hidden */
+    .content.hide {
+      width: 100%;
+    }
     .content {
       flex-grow: 1;
       padding: var(--default-margin-length);
       background-color: var(--default-foreground-color);
       margin-bottom: var(--default-margin-length);
       border-radius: var(--border-radius);
-      text-align: center; /* Add this line to center-align the text */
+      /* Add this style for the content width */
+      width: 80%;
     }
-
     h2 {
       font-size: 1.5rem;
       color: #1DB954;
     }
-
     .track {
       display: inline-block;
       margin-right: 1rem;
     }
-
     .track img {
       width: 200px;
       height: 200px;
     }
-
     .track h3,
     .track p {
       margin: 0.5rem;
       color: #fff;
     }
-
     footer {
       background-color: #333;
       padding: 1rem;
       text-align: center;
       color: #fff;
     }
-
     .button {
       display: inline-block;
       padding: 0.5rem;
       background-color: #1DB954;
+      /* Change this style for the button color */
       color: #000;
       text-decoration: none;
       border-radius: 5px;
       transition-duration: 0.3s;
       transform-origin: center center;
     }
-
-     /* Add this style for the sidebar toggle button */
-     .toggle-button {
-       position:absolute; 
-       top:.75rem; 
-       left:.75rem; 
-       width:.75rem; 
-       height:.75rem; 
-       cursor:pointer; 
-       z-index :10000
-     }
-     
-     /* Add this style for the horizontal lines */
-     .toggle-button span { 
-       display:block; 
-       width:.75rem; 
-       height:.125rem; 
-       background:#fff; 
-       position:absolute; 
-       left :0; 
-       transition:.5s
-     }
-     
-     /* Add this style for the horizontal lines position */
-     .toggle-button span:nth-child(1) { top :0 }
-     .toggle-button span:nth-child(2) { top :.25rem }
-     .toggle-button span:nth-child(3) { top :.5rem }
-     
-     /* Add this style for the horizontal lines animation */
-     .toggle-button.active span:nth-child(1) { top :.25rem; transform :rotate(135deg) }
-     .toggle-button.active span:nth-child(2) { opacity :0 }
-     .toggle-button.active span:nth-child(3) { top :.25rem; transform :rotate(-135deg) }
-
-
-    
-    
-
-    
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
+    /* Add this style for the sidebar toggle button */
+    .toggle-button {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      width: 0.75rem;
+      height: 0.75rem;
+      cursor: pointer;
+      z-index: 10000;
+    }
+    /* Add this style for the horizontal lines */
+    .toggle-button span {
+      display: block;
+      width: 0.75rem;
+      height: 0.125rem;
+      background: #fff;
+      position: absolute;
+      left: 0;
+      transition: 0.5s;
+    }
+    /* Add this style for the horizontal lines position */
+    .toggle-button span:nth-child(1) {
+      top: 0;
+    }
+    .toggle-button span:nth-child(2) {
+      top: 0.25rem;
+    }
+    .toggle-button span:nth-child(3) {
+      top: 0.5rem;
+    }
+    /* Add this style for the horizontal lines animation */
+    .toggle-button.active span:nth-child(1) {
+      top: 0.25rem;
+      transform: rotate(135deg);
+    }
+    .toggle-button.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .toggle-button.active span:nth-child(3) {
+      top: 0.25rem;
+      transform: rotate(-135deg);
+    }
     @media screen and (max-width: 768px) {
       nav ul li {
         display: block;
         margin-bottom: 0.5rem;
       }
-
       .track {
         display: block;
         margin-bottom: 0.5rem;
       }
-
       .button {
         width: 80%;
       }
     }
-
     @media screen and (min-width: 1200px) {
       /* Additional styles for larger screens if needed */
     }
-
     nav ul li a:hover,
     .button:hover {
       transform: scale(1.1);
@@ -295,14 +236,19 @@
   </div>
 
   <script>
+    // Add this function to toggle the sidebar
+    function toggleSidebar() {
+      var sidebar = document.querySelector(".sidebar");
+      var container = document.querySelector(".container");
+      var content = document.querySelector(".content");
+      var toggleButton = document.querySelector(".toggle-button");
 
-     // Add this function to toggle the sidebar
-     function toggleSidebar() {
-       var sidebar = document.querySelector(".sidebar");
-       var toggleButton = document.querySelector(".toggle-button");
-       sidebar.classList.toggle("active");
-       toggleButton.classList.toggle("active");
-     }
+      // Add these lines to toggle the classes that control the sidebar visibility
+      sidebar.classList.toggle("hide");
+      container.classList.toggle("hide");
+      content.classList.toggle("hide");
+      toggleButton.classList.toggle("active");
+    }
 
     function showHome() {
       hideAllSections();
@@ -326,16 +272,15 @@
 
     function hideAllSections() {
       var sections = document.querySelectorAll("section");
-      sections.forEach(function(section) {
+      sections.forEach(function (section) {
         section.style.display = "none";
       });
     }
 
     // Show Home section by default on page load
-    window.onload = function() {
+    window.onload = function () {
       showHome();
     };
   </script>
 </body>
 </html>
-
