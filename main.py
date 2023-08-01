@@ -1,6 +1,6 @@
 """ Tracks your friends's music streaming activity on Spotify and adds the tracks to a playlist.
 """
-
+# import util
 import sqlite3
 import json
 import re
@@ -33,8 +33,14 @@ import signal
 
 redirect_uri = 'http://127.0.0.1:9090'
 username = 'rt47etgc6xpwhhhb8575rth83'
-client_ID = clint_id_secret.client_ID
-client_SECRET = clint_id_secret.client_SECRET
+# client_ID = clint_id_secret.client_ID
+# client_SECRET = clint_id_secret.client_SECRET
+
+# set SPOTIPY_CLIENT_ID='4e1c1626b9e04c0fba6d8f14d31ab3e6'
+# set SPOTIPY_CLIENT_SECRET='607dd5362f9d4f44b33361eca5aa81b8'
+# set SPOTIPY_REDIRECT_URI='http://127.0.0.1:9090'
+client_ID = '4e1c1626b9e04c0fba6d8f14d31ab3e6'
+client_SECRET = '607dd5362f9d4f44b33361eca5aa81b8'
 
 # data_folder = r"C:\Users\saket\Documents\1.MY_DATA\spotify\spotify api data"
 recently_played_file_name = 'recently_played_tracks.csv'
@@ -57,24 +63,31 @@ def get_spotify_token(scope):
     return spotipy.Spotify(client_credentials_manager=client_credentials_manager, requests_timeout=10, retries=10)
 
 
-""" ATTENTION you can find a better way, so that you don't have to get the every token everytime"""
-# token to modify user's playlists
-playlist_modify_public = get_spotify_token("playlist-modify-public")
+# """ ATTENTION you can find a better way, so that you don't have to get the every token everytime"""
+# # token to modify user's playlists
+# playlist_modify_public = get_spotify_token("playlist-modify-public")
+# # print(playlist_modify_public.get_access_token())
+# # user-top-read
+# user_top_read = get_spotify_token("user-top-read")
+# print(user_top_read)
 
-# user-read-recently-played
-user_read_recently_played = get_spotify_token("user-read-recently-played")
+# # playlist-modify-private
+# playlist_modify_private = get_spotify_token("playlist-modify-private")
+# print(playlist_modify_private)
 
-# user-top-read
-user_top_read = get_spotify_token("user-top-read")
+# # user-library-read
+# user_library_read = get_spotify_token("user-library-read")
+# print(user_library_read)
 
-# playlist-modify-private
-playlist_modify_private = get_spotify_token("playlist-modify-private")
+# # playlist-read-private
+# playlist_read_private = get_spotify_token("playlist-read-private")
+# print(playlist_read_private)
 
-# user-library-read
-user_library_read = get_spotify_token("user-library-read")
+# # user-read-recently-played
+# user_read_recently_played = get_spotify_token("user-read-recently-played")
+# # user_read_recently_played = spotipy.util.prompt_for_user_token(username, scope="user-read-recently-played")
+# print(user_read_recently_played)
 
-# playlist-read-private
-playlist_read_private = get_spotify_token("playlist-read-private")
 
 # get all the tracks from a private playlist
 def get_playlist_tracks(playlist_id):
@@ -272,11 +285,24 @@ def get_track_info_from_json(track_dict):
             track_info[key] = None
     return track_info
 
+
+def my_recently_played():
+    # get recently played tracks
+    scope = "user-read-recently-played"
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_ID,
+                                                    client_secret=client_SECRET,
+                                                        redirect_uri=redirect_uri,
+                                                        scope=scope,
+                                                        username=username))
+
+    results = sp.current_user_recently_played(limit=50)
+    return results
+
 def parse_my_streaming_history():
 
   # Call the get_recently_played_tracks function and store the result in a variable.
-  data = get_recently_played_tracks()
-
+#   data = get_recently_played_tracks()
+  data = my_recently_played()
   # Create an empty list to store the parsed data.
   parsed_data = []
 
@@ -1005,7 +1031,7 @@ def get_friends_activity_json():
     """
     
     # Path to the node.js script
-    path_to_script = r"C:\Users\saket\Documents\GitHub\Pyhton\Project Music\spotify api\spotify-buddylist-master\example.js"
+    path_to_script = r"C:\Users\saket\OneDrive\Documents\new projects\spotify\Project Spotify\Project_spotify\spotify-buddylist-master\example.js"
     # path_to_script = os.path.join("C:", "Users", "saket", "Documents", "GitHub", "Pyhton", "Project Music", "spotify api", "spotify-buddylist-master", "example.js")
 
     while True:
@@ -1136,9 +1162,9 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
     # create a table for users with columns for user_id, user_url, user_name and user_image_url
     cur.execute('''CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY,
-        user_uri TEXT NOT NULL,
+        user_url TEXT NOT NULL,
         user_name TEXT NOT NULL,
-        user_image_url TEXT NOT NULL
+        user_image_url TEXT 
     )
     ''')
 
@@ -1224,7 +1250,7 @@ def store_user_data_to_database(friends_activity_json, database_name='friends_ac
         try:
             user_image_url = data['user']['imageUrl']
         except:
-            user_image_url = None
+            user_image_url = ''
 
         # check if the user already exists in the users table by querying the user_url column
         cur.execute("SELECT user_id FROM users WHERE user_url = ?", (user_url,))
@@ -2429,13 +2455,43 @@ class MyStreamingAnalysis:
             return results
         except sqlite3.Error as e:
             print(f"Error executing query: {e}")
+        # define a function to get the most recently added last played songs
+    def get_most_recent_songs(self, count=10, epoch=None):
+        # construct the SQL query to select the track name, artist name, album name, release date and played_at for each streaming
+        sql = """SELECT t.track_name, a.artist_name, al.album_name, al.release_date, s.played_at
+                FROM streamings s
+                JOIN tracks t ON s.track_id = t.track_id -- join the streamings and tracks tables on track_id
+                JOIN artists a ON t.artist_id = a.artist_id -- join the tracks and artists tables on artist_id
+                JOIN albums al ON t.album_id = al.album_id -- join the tracks and albums tables on album_id
+            """
+
+        # if epoch is not None, add a WHERE clause to filter by played_at
+        if epoch is not None:
+            sql += f" WHERE s.played_at < {epoch}"
+
+        # order by played_at in descending order
+        sql += " ORDER BY s.played_at DESC"
+
+        # limit the result to the given count value
+        sql += f" LIMIT {count}"
+
+        # try to execute the query and fetch the results
+        try:
+            self.cur.execute(sql)
+            results = self.cur.fetchall()
+            # return the results as a list of tuples
+            return results
+        except sqlite3.Error as e:
+            print(f"Error executing query: {e}")
+
+
 
 def count_down(time_in_sec, text):
     '''
     This function takes a time in seconds and a text as arguments and prints a countdown
     '''
     # initialize colorama
-    colorama.init()
+    # colorama.init()
     
     # loop through the time in seconds
     for i in range(time_in_sec, 0, -1):
@@ -2457,6 +2513,7 @@ def count_down(time_in_sec, text):
     # print a final message in yellow color
     # print(Fore.YELLOW + "\nCountdown finished." + Style.RESET_ALL)
     print("\n updating...")
+    
 
 def first_part():
     while True:
@@ -2467,15 +2524,36 @@ def first_part():
         except Exception as e:
             # if there is an error, wait 20 seconds and retry
             print(e)
-            time.sleep(20)
+            time.sleep(25)
             continue
         # if successful, wait 30 seconds and repeat
         count_down(20, "")
+ 
+def second_part():
+    mystreaming = MyStreamingAnalysis()
+    secs = 0
+    last_print_sec = 0
+    while True:
+        # store streaming data to database
+        if secs == 600:
+            hist = store_my_streaming_data_to_database()
+            if hist:
+                print("Updated MyDatabase successfully")
+            else:
+                print("No new data to update")
+                secs = 0
+        if last_print_sec == 22:
+            print('My steaming History')
+            print(mystreaming.get_most_recent_songs(3)[0:])
+            last_print_sec = 0
 
 def second_part():
+    mystreaming = MyStreamingAnalysis()
     while True:
         # store streaming data to database
         hist = store_my_streaming_data_to_database()
+        print(mystreaming.get_most_recent_songs(1)[0])
+        
         if hist:
             print("Updated MyDatabase successfully")
         else:
@@ -2490,6 +2568,9 @@ def handler(signal, frame):
     print("Ctrl+C pressed... Exiting")
     sys.exit(0)
 
+# store_user_data_to_database(get_friends_activity_json())
+# print_last_played_songs(1)
+# store_my_streaming_data_to_database()
 
 if __name__ == "__main__":
     # create two threads for each part
@@ -2507,3 +2588,4 @@ if __name__ == "__main__":
     while True:
         thread1.join(1)
         thread2.join(1)
+
