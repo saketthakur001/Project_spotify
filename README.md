@@ -1,5 +1,5 @@
 # SPOTIFY Manager
-My friends activity 👇 - this data is getting store in a PostgreSQL Database
+My friends activity 👇 - this data is getting store in a PostgreSQL Database - MORE THAN 15 THOUSAND ALBUM DATA as of now
 ![image](https://github.com/saketthakur001/Project_spotify/assets/58982512/5c76b3db-4b94-45a4-804b-cf6d70d8306d)
 # Currently under development
 This is a web app that allows you to manage, recommend, and track your music on Spotify. You can create playlists, discover new songs, and see your listening statistics.
