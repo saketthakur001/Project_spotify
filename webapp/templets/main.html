@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="../static/style.css"> <!-- Added link to external stylesheet -->
+</head>
+<body>
+  <div class="title">
+    <h1>Mew-cat</h1>
+  </div>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="#" class="button" onclick="showHome()">Home</a></li>
+        <li><a href="#" class="button" onclick="showRecommendations()">Recommendations</a></li>
+        <li><a href="#" class="button" onclick="showPlaylists()">Playlists</a></li>
+        <li><a href="#" class="button" onclick="showArtists()">Artists</a></li>
+      </ul>
+    </nav>
+  </header>
+  <div class="container">
+    <div class="toggle-button" onclick="toggleSidebar()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="sidebar sidebar-hidden"> <!-- Added class "sidebar-hidden" to make it collapsed by default -->
+      <!-- Sidebar content... -->
+    </div>
+    <div class="content sidebar-hidden"> <!-- Added class "sidebar-hidden" to adjust margin when collapsed -->
+      <section id="home">
+        <h2>Home</h2>
+        <!-- Home content... -->
+      </section>
+      <section id="recommendations" style="display: none;">
+        <h2>Recommended Tracks</h2>
+        <!-- Recommendations content... -->
+      </section>
+      <section id="playlists" style="display: none;">
+        <h2>Playlists</h2>
+        <!-- Playlists content... -->
+      </section>
+      <section id="artists" style="display: none;">
+        <h2>Artists</h2>
+        <!-- Artists content... -->
+      </section>
+    </div>
+  </div>
+
+  <script src="../static/script.js"></script> <!-- Added link to external script -->
+</body>
+</html>

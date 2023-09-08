@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- add some meta information about your web app -->
+    <meta name="author" content="mew-cat">
+    <meta name="description" content="A web app that allows you to manage, recommend, and track your music on Spotify.">
+    <meta name="keywords" content="music, spotify, web app">
+    <title>mew-cat</title>
+    <!-- link to your external CSS and JavaScript files here -->
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <div id="container">
+        <!-- use a header element to create a header section for your web app -->
+        <header id="app-header">
+            <h1>mew-cat</h1>
+            <p>This is a web app that allows you to manage, recommend, and track your music on Spotify.</p>
+        </header>
+        <!-- use a nav element to create a navigation bar for your web app -->
+        <nav id="app-nav">
+            <ul>
+                <!-- use lowercase letters for the links -->
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Top songs</a></li>
+                <li><a href="#">Top artists</a></li>
+                <li><a href="#">Top genres</a></li>
+                <li><a href="#">Recommendations</a></li>
+                <li><a href="#">Playlists</a></li>
+                <li><a href="#">Statistics</a></li>
+                <li><a href="#">Friends</a></li>
+            </ul>
+        </nav>
+        <!-- use a main element to create the main content area for your web app -->
+        <main id="app-main">
+            <!-- this is where you display the content of each page -->
+            <!-- use a section element to wrap each feature of your web app -->
+            <!-- for example, this is the section for the top songs feature -->
+            <!-- use an id attribute to identify each section -->
+            <section id="top-songs-section">
+                <!-- use an article element to display each song in the table or list -->
+                <!-- use a class attribute to group similar elements -->
+                <!-- for example, this is the article for the first song in the table or list -->
+                <article class="song-article">
+                    <!-- use a header element to create a header for each song article -->
+                    <!-- use an h2 element to display the song name as a subheading -->
+                    <!-- use an image element to display the album cover as an icon -->
+                    <!-- use an alt attribute to provide a descriptive text for the image -->
+                    <!-- use a link element to open the song on Spotify -->
+                    <!-- use the href attribute to set the URL of the link -->
+                    <!-- use the target attribute to open the link in a new tab -->
+                    <!-- for example, target="_blank" -->
+                    <header class="song-header">
+                        <h2><img src="bad-habits.jpg" alt="Album cover of Bad Habits by Ed Sheeran"> 
+                        <a href="https://open.spotify.com/track/6PQ88X9TkUIAUIZJHW2upE" target="_blank">Bad Habits</a></h2>
+                    </header>
+                    <!-- use a div element to create a container for the song details -->
+                    <!-- use span elements to display the artist name, album name, and duration as inline text -->
+                    <!-- use an image element to display the artist photo as an icon -->
+                    <!-- use an alt attribute to provide a descriptive text for the image -->
+                    <!-- use a link element to open the artist on Spotify -->
+                    <!-- use the href attribute to set the URL of the link -->
+                    <!-- use the target attribute to open the link in a new tab -->
+                    <!-- for example, target="_blank" -->
+                    <div class="song-details">
+                        by 
+                        <span class="artist-name"><img src="ed-sheeran.jpg" alt="Photo of Ed Sheeran"> 
+                        <a href="https://open.spotify.com/artist/6eUKZXaKkcviH0Ku9w2n3V" target="_blank">Ed Sheeran</a></span> 
+                        from 
+                        <!-- use an image element to display the album cover as an icon -->
+                        <!-- use an alt attribute to provide a descriptive text for the image -->
+                        <!-- use a link element to open the album on Spotify -->
+                        <!-- use the href attribute to set the URL of the link -->
+                        <!-- use the target attribute to open the link in a new tab -->
+                        <!-- for example, target="_blank" -->
+                        <span class="album-name"><img src="bad-habits.jpg" alt="Album cover of Bad Habits by Ed Sheeran"> 
+                        <a href="https://open.spotify.com/album/37ftY5S10fLxRYoNIcQ5UO" target="_blank">Bad Habits</a></span> 
+                        <!-- use a span element to display the duration as inline text -->
+                        <!-- you can format the duration in minutes and seconds using JavaScript -->
+                        (<span class="duration">3:51</span>)
+                    </div>
+                </article>
+                <!-- repeat for other songs in the table or list -->
+            </section>
+            <!-- repeat for other features of your web app -->
+        </main>
+        <!-- use a footer element to create a footer section for your web app -->
+        <footer id="app-footer">
+            <p>Created by mew-cat using Spotify API.</p>
+        </footer>
+    </div>
+</body>
+</html>
