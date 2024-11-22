@@ -27,4 +27,4 @@ Alternatively, you can deploy this web app to a hosting service like Vercel or H
 
 This web app is still in production and may have some bugs or errors. I welcome any feedback or suggestions on how to improve this web app. You can contact me at saketthakur001@gmail.com or open an issue or pull request on this repository.
 
-⚠️ **IMPORTANT NOTICE**: This code is protected under the "All Rights Reserved" license. All rights are reserved by the copyright holder (you), and no one else is allowed to use, copy, modify, or distribute this code without explicit permission.
+⚠️ **IMPORTANT NOTICE**: This code is protected under the "All Rights Reserved" license. All rights are reserved by the copyright holder, and no one else is allowed to use, copy, modify, or distribute this code without explicit permission.
